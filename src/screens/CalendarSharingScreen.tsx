@@ -1,23 +1,46 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { useNavigation } from '@react-navigation/native';
-import Constants  from 'expo-constants';
+import Constants from 'expo-constants';
+
+interface Calendar {
+  id: string;
+  summary: string;
+  description?: string;
+}
+
 export default function CalendarSharingScreen() {
+  useEffect(()=>{
+    GoogleSignin.configure({
+          webClientId: Constants.manifest.extra.googleWebClientId,
+          scopes: [
+            'https://www.googleapis.com/auth/drive.readonly',
+            'https://www.googleapis.com/auth/calendar', 
+            'https://www.googleapis.com/auth/calendar.events',
+             ],
+          offlineAccess: true, 
+          forceCodeForRefreshToken: false,
+    });
+  },[]);
   const [isLoading, setIsLoading] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
-
-  const navigation = useNavigation()
-  
+  const [calendars, setCalendars] = useState<Calendar[]>([]);
+  const [isFetchingCalendars, setIsFetchingCalendars] = useState(false);
+  const [selectedCalendarIds, setSelectedCalendarIds] = useState<string[]>([]);
+ useEffect(()=> console.log(calendars),[calendars]);
+  const navigation = useNavigation();
   const handleGoogleSignIn = async () => {
     try {
-      const isSignedIn =  GoogleSignin.hasPreviousSignIn();
+      const isSignedIn = GoogleSignin.hasPreviousSignIn();
       if (!isSignedIn) {
         await GoogleSignin.signIn();
       }
       const { accessToken } = await GoogleSignin.getTokens();
-      const userInfo =  GoogleSignin.getCurrentUser();
+      const userInfo = GoogleSignin.getCurrentUser();
       setUserEmail(userInfo?.user.email || null);
+      await fetchCalendars(accessToken);
+
       return accessToken;
     } catch (error: any) {
       if (error.code === statusCodes.SIGN_IN_CANCELLED) {
@@ -31,10 +54,37 @@ export default function CalendarSharingScreen() {
     }
   };
 
-  const shareCalendarWithServiceAccount = async (accessToken: string) => {
+  const fetchCalendars = async (accessToken: string) => {
     try {
-      const serviceAccountEmail = Constants.manifest.extra.apiBaseUrl;
-      const calendarId = 'primary';
+      setIsFetchingCalendars(true);
+      const response = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`Failed to fetch calendars: ${response.status} - ${errorBody}`);
+      }
+      
+      const data = await response.json();
+      const filteredCalendars = data.items.filter((calendar: { accessRole: string }) => {
+        return calendar.accessRole === "owner";
+      });
+  
+      setCalendars(filteredCalendars);
+    } catch (error) {
+      throw new Error(`Error fetching calendars: ${error instanceof Error ? error.message : 'Unknown'}`);
+    } finally {
+      setIsFetchingCalendars(false);
+    }
+  };
+
+  const shareCalendarWithServiceAccount = async (accessToken: string, calendarId: string) => {
+    try {
+      const serviceEmailAccount = Constants.manifest.extra.serviceEmailAccount;
       const response = await fetch(
         `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/acl`,
         {
@@ -44,8 +94,11 @@ export default function CalendarSharingScreen() {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            scope: { type: 'user', value: serviceAccountEmail },
             role: 'reader',
+            scope: { 
+              type: 'user',
+              value:  serviceEmailAccount
+            },
           }),
         }
       );
@@ -56,61 +109,129 @@ export default function CalendarSharingScreen() {
       }
 
       return true;
-    } catch (error) {
+    } catch (error:any) {
       throw new Error(`Calendar sharing error: ${error instanceof Error ? error.message : 'Unknown'}`);
     }
   };
 
-  const handleShareCalendar = async () => {
+  const handleSelectCalendar = (calendarId: string) => {
+    setSelectedCalendarIds((prevSelected) =>
+      prevSelected.includes(calendarId)
+        ? prevSelected.filter((id) => id !== calendarId)
+        : [...prevSelected, calendarId]
+    );
+  };
+  
+
+  const handleShareCalendars = async () => {
+    if (selectedCalendarIds.length === 0) {
+      Alert.alert('Please select at least one calendar');
+      return;
+    }
+    
     setIsLoading(true);
     try {
       const accessToken = await handleGoogleSignIn();
-      await shareCalendarWithServiceAccount(accessToken);
-      Alert.alert('Success', 'Calendar shared successfully!');
+      await shareCalendarWithServiceAccount(accessToken, 'primary');
+      for (const calendarId of selectedCalendarIds) {
+        await shareCalendarWithServiceAccount(accessToken, calendarId);
+      }
+      Alert.alert('Success', 'Calendars shared successfully!');
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to share calendar');
+      Alert.alert('Error', error.message || 'Failed to share calendars');
     } finally {
       setIsLoading(false);
+    }
+  };  
+
+  const handleLogout = async () => {
+    try {
+      await GoogleSignin.signOut();
+      setUserEmail(null);
+      setCalendars([]);
+      setSelectedCalendarIds([]);
+      Alert.alert('Success', 'Logged out successfully!');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to log out');
     }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-<View style={styles.backButtonContainer}>
-  <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-    <Image source={{ uri: 'https://img.icons8.com/ios-filled/50/000000/back.png' }} style={{ width: 24, height: 24 }} />
-  </TouchableOpacity>
-</View>
+      <View style={styles.backButtonContainer}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Image source={{ uri: 'https://img.icons8.com/ios-filled/50/000000/back.png' }} style={styles.backIcon} />
+        </TouchableOpacity>
+      </View>
 
       <View style={styles.card}>
         <Text style={styles.title}>📅 Calendar Sharing</Text>
-        <Text style={styles.subtitle}>Share your Google Calendar seamlessly.</Text>
 
-        <Image
-          source={{ uri: 'https://img.icons8.com/clouds/300/calendar.png' }}
-          style={styles.image}
-          resizeMode="contain"
-        />
+        {userEmail ? (
+          <>
+            <View style={styles.userInfo}>
+              <Text style={styles.emailText}>✅ Connected as: {userEmail}</Text>
+            </View>
 
-        {userEmail && (
-          <View style={styles.userInfo}>
-            <Text style={styles.emailText}>✅ Connected as: {userEmail}</Text>
-          </View>
+            {isFetchingCalendars ? (
+              <ActivityIndicator size="large" color="#4285F4" />
+            ) : (
+              <>
+                <Text style={styles.sectionTitle}>Select a Calendar</Text>
+                <ScrollView style={styles.calendarList}>
+                  {calendars.map((calendar) => (
+                    <TouchableOpacity
+                      key={calendar.id}
+                      style={[
+                        styles.calendarItem,
+                        selectedCalendarIds.includes(calendar.id) && styles.selectedCalendarItem,
+                      ]}
+                      onPress={() => handleSelectCalendar(calendar.id)}
+                    >
+                      <Text style={styles.calendarSummary}>{calendar.summary}</Text>
+                      {calendar.description && (
+                        <Text style={styles.calendarDescription}>{calendar.description}</Text>
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+
+              </>
+            )}
+          </>
+        ) : (
+          <>
+            <Text style={styles.subtitle}>Share your Google Calendar seamlessly.</Text>
+            <Image
+              source={{ uri: 'https://img.icons8.com/clouds/300/calendar.png' }}
+              style={styles.image}
+              resizeMode="contain"
+            />
+          </>
         )}
 
-        <TouchableOpacity
-          style={[styles.button, isLoading && styles.buttonDisabled]}
-          onPress={handleShareCalendar}
-          disabled={isLoading}
-        >
-          {isLoading ? (
-            <ActivityIndicator color="#fff" />
-          ) : (
-            <Text style={styles.buttonText}>{userEmail ? 'Share Calendar' : 'Sign In with Google'}</Text>
-          )}
-        </TouchableOpacity>
+      <TouchableOpacity
+        style={[styles.button, (isLoading || !userEmail) && styles.buttonDisabled]}
+        onPress={userEmail ? handleShareCalendars : handleGoogleSignIn}
+      >
+        {isLoading ? (
+          <ActivityIndicator color="#fff" />
+        ) : (
+          <Text style={styles.buttonText}>
+            {userEmail ? 'Share Selected Calendars' : 'Sign In with Google'}
+          </Text>
+        )}
+      </TouchableOpacity>
       </View>
+      <TouchableOpacity
+        style={[styles.button, styles.logoutButton]}
+        onPress={handleLogout}
+        disabled={!userEmail}
+      >
+        <Text style={styles.buttonText}>Log Out</Text>
+      </TouchableOpacity>
     </ScrollView>
+    
   );
 }
 
@@ -171,6 +292,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     width: '100%',
+    marginTop: 20,
   },
   buttonDisabled: {
     opacity: 0.6,
@@ -186,7 +308,6 @@ const styles = StyleSheet.create({
     left: 10,
     zIndex: 10,
   },
-  
   backButton: {
     padding: 10,
     borderRadius: 20,
@@ -194,5 +315,47 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 4,
+  },
+  backIcon: {
+    width: 24,
+    height: 24,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 10,
+    alignSelf: 'flex-start',
+  },
+  calendarList: {
+    maxHeight: 200,
+    width: '100%',
+    marginBottom: 10,
+  },
+  calendarItem: {
+    backgroundColor: '#f8f9fa',
+    padding: 15,
+    borderRadius: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#dee2e6',
+  },
+  selectedCalendarItem: {
+    borderColor: '#4285F4',
+    backgroundColor: '#E3F2FD',
+  },
+  calendarSummary: {
+    fontSize: 16,
+    color: '#333',
+    fontWeight: '500',
+  },
+  calendarDescription: {
+    fontSize: 14,
+    color: '#666',
+    marginTop: 4,
+  },
+  logoutButton: {
+    backgroundColor: '#dc3545',
+    marginTop: 10,
   },
 });
