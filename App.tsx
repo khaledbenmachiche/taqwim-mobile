@@ -1,12 +1,23 @@
-import { StatusBar } from 'expo-status-bar';
+import "./global.css";
 import { StyleSheet, Text, View } from 'react-native';
+import AppNavigator from './src/navigation/AppNavigator';
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import Constants  from "expo-constants";
+
+GoogleSignin.configure({
+    webClientId: Constants.manifest.extra.googleWebClientId,
+    scopes: [
+      'https://www.googleapis.com/auth/drive.readonly',
+      'https://www.googleapis.com/auth/calendar', 
+      'https://www.googleapis.com/auth/calendar.events',
+       ],
+    offlineAccess: true, 
+    forceCodeForRefreshToken: false,
+});
 
 export default function App() {
   return (
-    <View style={styles.container}>
-      <Text>Open up App.tsx to start working on your app!</Text>
-      <StatusBar style="auto" />
-    </View>
+    <AppNavigator />
   );
 }
 

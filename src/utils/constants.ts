@@ -1,0 +1,1 @@
+export const serviceEmailAccount = 'rasspberry-838@iot-project-449816.iam.gserviceaccount.com';
