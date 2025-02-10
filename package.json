@@ -18,6 +18,7 @@
     "expo-constants": "~17.0.5",
     "expo-linear-gradient": "^14.0.2",
     "expo-secure-store": "~14.0.1",
+    "expo-splash-screen": "~0.29.21",
     "expo-status-bar": "~2.0.1",
     "expo-system-ui": "~4.0.8",
     "nativewind": "^4.1.23",

@@ -3,7 +3,7 @@ import { SignUpData,SignInData } from './types';
 
 const signUp = async ({email, password, username,lastName,firstName,phoneNumber}:SignUpData) => {
   try {
-    const data = await httpRequest('/app/authentification/signup', 'POST', {
+    const data = await httpRequest('/app/authentification/signup/', 'POST', {
       email,
       password,
       username,
@@ -35,9 +35,9 @@ const signUp = async ({email, password, username,lastName,firstName,phoneNumber}
 
 const signIn = async ({username, password}:SignInData) => {
   try {
-    const data = await httpRequest('/app/authentification/login', 'POST', {
+    const data = await httpRequest('/app/authentification/login/', 'POST', {
       username,
-      password,
+      password
     });
 
     return {

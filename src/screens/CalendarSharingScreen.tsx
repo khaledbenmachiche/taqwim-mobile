@@ -3,6 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, ActivityIn
 import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
 import { useNavigation } from '@react-navigation/native';
 import Constants from 'expo-constants';
+import httpRequest from '../utils/httpRequest';
 
 interface Calendar {
   id: string;
@@ -28,7 +29,6 @@ export default function CalendarSharingScreen() {
   const [calendars, setCalendars] = useState<Calendar[]>([]);
   const [isFetchingCalendars, setIsFetchingCalendars] = useState(false);
   const [selectedCalendarIds, setSelectedCalendarIds] = useState<string[]>([]);
- useEffect(()=> console.log(calendars),[calendars]);
   const navigation = useNavigation();
   const handleGoogleSignIn = async () => {
     try {
@@ -128,21 +128,33 @@ export default function CalendarSharingScreen() {
       Alert.alert('Please select at least one calendar');
       return;
     }
-    
     setIsLoading(true);
     try {
       const accessToken = await handleGoogleSignIn();
-      await shareCalendarWithServiceAccount(accessToken, 'primary');
       for (const calendarId of selectedCalendarIds) {
-        await shareCalendarWithServiceAccount(accessToken, calendarId);
+        try {
+          await shareCalendarWithServiceAccount(accessToken, calendarId);
+          const response = await httpRequest('/app/calendar/', 'POST', {
+            google_calendar_id: calendarId,
+            user_id: 6,
+            summary: calendars.find((calendar) => calendar.id === calendarId)?.summary,
+          });
+  
+          console.log(`Calendar ${calendarId} shared and saved successfully:`, response);
+        } catch (error) {
+          console.error(`Failed to process calendar ${calendarId}:`, error);
+          throw error;
+        }
       }
-      Alert.alert('Success', 'Calendars shared successfully!');
+  
+      Alert.alert('Success', 'Calendars shared and saved successfully!');
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to share calendars');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to share calendars';
+      Alert.alert('Error', errorMessage);
     } finally {
       setIsLoading(false);
     }
-  };  
+  };
 
   const handleLogout = async () => {
     try {
@@ -155,6 +167,7 @@ export default function CalendarSharingScreen() {
       Alert.alert('Error', 'Failed to log out');
     }
   };
+
 
   return (
     <ScrollView contentContainerStyle={styles.container}>

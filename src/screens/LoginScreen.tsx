@@ -41,7 +41,6 @@ export default function LoginScreen() {
       navigation.navigate('Home');
 
     } catch (error: any) {
-      console.log(error)
       Alert.alert('Error', error.message);
     }
   };

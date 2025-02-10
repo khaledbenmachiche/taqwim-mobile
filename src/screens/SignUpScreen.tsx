@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity, Image, TextInput, Alert } from 'react-native';
-import React, { useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeftIcon } from 'react-native-heroicons/solid';
 import { useNavigation } from '@react-navigation/native';
@@ -22,7 +22,6 @@ export default function SignUpScreen() {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-
   const validateEmail = (email: string) => {
     const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return re.test(email);
@@ -55,6 +54,10 @@ export default function SignUpScreen() {
         Alert.alert('Error', 'Passwords do not match');
         return;
       }
+
+
+
+      console.log(email,username,firstName,lastName,phoneNumber,password);
       const result = await signUp({ email, username, firstName, lastName, phoneNumber, password });
       if (!result.success && result.error) {
         Alert.alert('Error', result.error);
