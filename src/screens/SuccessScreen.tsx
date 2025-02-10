@@ -1,9 +1,160 @@
-import { useState } from "react";
-import { StyleSheet, Text, View, TouchableOpacity, SafeAreaView, StatusBar, Modal, Image } from "react-native";
+import {useEffect, useState} from "react";
+import {StyleSheet, Text, View, TouchableOpacity, SafeAreaView, StatusBar, Modal, Image, Alert} from "react-native";
 import { Calendar, Check } from "lucide-react-native";
+import {useNavigation} from "@react-navigation/native";
+import {GoogleSignin, statusCodes} from "@react-native-google-signin/google-signin";
+import Constants from "expo-constants";
+import shareCalendarWithServiceAccount from "../utils/shareCalendarWithServiceAccount";
+import httpRequest from "../utils/httpRequest";
+import {StackNavigationProp} from "@react-navigation/stack";
+import {RootStackParamList} from "../navigation/AppNavigator";
+import * as SecureStore from 'expo-secure-store';
+import Toast from "react-native-toast-message";
+
+interface Calendar {
+    id: string;
+    summary: string;
+}
+
+type SuccessScreenNavigationProp = StackNavigationProp<
+    RootStackParamList,
+    'Home'
+>;
+
 
 export default function SuccessScreen() {
     const [showModal, setShowModal] = useState(false)
+    const navigation:SuccessScreenNavigationProp =  useNavigation();
+
+    useEffect(()=> {
+        GoogleSignin.configure({
+            webClientId: Constants.manifest.extra.googleWebClientId,
+            scopes: [
+                'https://www.googleapis.com/auth/calendar',
+                'https://www.googleapis.com/auth/calendar.events',
+            ],
+            offlineAccess: true,
+            forceCodeForRefreshToken: false,
+        });
+    },[]);
+    const [isLoading, setIsLoading] = useState(false);
+    const [calendars, setCalendars] = useState<Calendar[]>([]);
+    const [isFetchingCalendars, setIsFetchingCalendars] = useState(false);
+
+    const handleGoogleSignIn = async () => {
+        try {
+            const isSignedIn = GoogleSignin.hasPreviousSignIn();
+            if (!isSignedIn) {
+                await GoogleSignin.signIn();
+            }
+            const { accessToken } = await GoogleSignin.getTokens();
+            const userInfo = GoogleSignin.getCurrentUser();
+            await fetchCalendars(accessToken);
+
+            return accessToken;
+        } catch (error: any) {
+            if (error.code === statusCodes.SIGN_IN_CANCELLED) {
+                Toast.show({
+                    type: 'error',
+                    text1: 'error!',
+                    text2: 'Sign in cancelled.',
+                });
+                //Alert.alert('Sign in cancelled');
+            } else if (error.code === statusCodes.IN_PROGRESS) {
+                Toast.show({
+                    type: 'error',
+                    text1: 'error!',
+                    text2: 'Sign in already in progress.',
+                });
+                //Alert.alert('Sign in already in progress');
+            } else {
+                Toast.show({
+                    type: 'error',
+                    text1: 'error!',
+                    text2: 'Sign in error.',
+                });
+                // Alert.alert('Sign in error', error.toString());
+            }
+            throw error;
+        }
+    };
+
+    const fetchCalendars = async (accessToken: string) => {
+        try {
+            setIsFetchingCalendars(true);
+            const response = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
+                headers: {
+                    Authorization: `Bearer ${accessToken}`,
+                    'Content-Type': 'application/js on',
+                },
+            });
+
+            if (!response.ok) {
+                const errorBody = await response.text();
+                throw new Error(`Failed to fetch calendars: ${response.status} - ${errorBody}`);
+            }
+
+            const data = await response.json();
+            const filteredCalendars = data.items.filter((calendar: { accessRole: string }) => {
+                return calendar.accessRole === "owner";
+            });
+
+            setCalendars(filteredCalendars);
+        } catch (error) {
+            throw new Error(`Error fetching calendars: ${error instanceof Error ? error.message : 'Unknown'}`);
+        } finally {
+            setIsFetchingCalendars(false);
+        }
+    };
+
+    const handleShareCalendars = async () => {
+        setIsLoading(true);
+        try {
+            const accessToken = await handleGoogleSignIn();
+            if (calendars.length === 0) {
+                Alert.alert("You Don't have any calendars available in your google calendar");
+                Toast.show({
+                    type: 'error',
+                    text1: 'error!',
+                    text2: 'You Don\'t have any calendars available in your google calendar.',
+                });
+                return;
+            }
+            for (const calendar of calendars) {
+                try {
+                    await shareCalendarWithServiceAccount(accessToken, calendar.id);
+                    const userId = await SecureStore.getItemAsync("userId");
+                    const response = await httpRequest('/app/calendar/', 'POST', {
+                        google_calendar_id: calendar.id,
+                        user_id: userId,
+                        summary: calendar.summary,
+                    });
+
+                    console.log(`Calendar ${calendar.id} shared and saved successfully:`, response);
+                    navigation.navigate("Home");
+                } catch (error) {
+                    console.error(`Failed to process calendar ${calendar.id}:`, error);
+                    Toast.show({
+                        type: 'error',
+                        text1: 'error!',
+                        text2: 'Failed to share calendars.',
+                    });
+                }
+            }
+
+            Alert.alert('Success', 'Calendars shared and saved successfully!');
+        } catch (error: any) {
+            const errorMessage = error instanceof Error ? error.message : 'Failed to share calendars';
+            // Alert.alert('Error', errorMessage);
+            Toast.show({
+                type: 'error',
+                text1: 'error!',
+                text2: 'Failed to share calendars.',
+            });
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     return (
         <SafeAreaView style={styles.container}>
@@ -22,10 +173,10 @@ export default function SuccessScreen() {
 
                 {/* Success Message */}
                 <Text style={styles.title}>Congratulation!</Text>
-                <Text style={styles.subtitle}>your account is complete, please enjoy the notification system from us.</Text>
+                <Text style={styles.subtitle}>Your account setup is complete! Enjoy our notification system.</Text>
 
                 {/* Action Buttons */}
-                <TouchableOpacity style={styles.getStartedButton}>
+                <TouchableOpacity style={styles.getStartedButton} onPress={()=> navigation.navigate("Home")}>
                     <Text style={styles.getStartedButtonText}>Get Started</Text>
                 </TouchableOpacity>
 
@@ -45,8 +196,8 @@ export default function SuccessScreen() {
 
                         <TouchableOpacity
                             style={styles.googleButton}
-                            onPress={() => {
-                                // Handle Google Sign In
+                            onPress={async () => {
+                                await handleShareCalendars()
                                 setShowModal(false)
                             }}
                         >
@@ -56,6 +207,7 @@ export default function SuccessScreen() {
                     </View>
                 </TouchableOpacity>
             </Modal>
+            <Toast/>
         </SafeAreaView>
     )
 }

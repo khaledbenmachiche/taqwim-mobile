@@ -5,6 +5,7 @@ import * as SecureStore from 'expo-secure-store';
 import { Alert } from 'react-native';
 import { RootStackParamList } from '../navigation/AppNavigator';
 import { StackNavigationProp } from '@react-navigation/stack';
+import Toast from 'react-native-toast-message';
 
 
 import { useState } from "react"
@@ -25,26 +26,52 @@ export default function LoginScreen() {
   const handleSignInPress = async () => {
     try {
       if (!username || !password) {
-        Alert.alert('Error', 'Please fill in all fields');
+        //Alert.alert('Error', 'Please fill in all fields');
+          Toast.show({
+              type: 'error',
+              text1: 'error!',
+              text2: "Please fill in all fields",
+          })
         return;
       }
 
       const result = await signIn({ username, password });
       if (!result.success && result.error) {
-        Alert.alert('Error', result.error);
+        // Alert.alert('Error', result.error);
+        Toast.show({
+              type: 'error',
+              text1: 'error!',
+              text2: result.error,
+        })
         return;
       }
 
-      Alert.alert('Success', 'Signed in successfully');
+      Toast.show({
+            type: 'success',
+            text1: 'Success!',
+            text2: 'Signed in successfully.',
+      });
 
+      await SecureStore.setItemAsync('userId', result.userInfo?.id ?? '');
       await SecureStore.setItemAsync('userUsername', result.userInfo?.username ?? '');
       await SecureStore.setItemAsync('userEmail', result.userInfo?.email ?? '');
       await SecureStore.setItemAsync('userLastName', result.userInfo?.lastName ?? '');
       await SecureStore.setItemAsync('userFirstName', result.userInfo?.firstName ?? '');
+      await SecureStore.setItemAsync('userPhoneNumber', result.userInfo?.phoneNumber ?? '');
       navigation.navigate('Home');
 
+
+      //Alert.alert('Success', 'Signed in successfully');
+
+
     } catch (error: any) {
-      Alert.alert('Error', error.message);
+      // Alert.alert('Error', error.message);
+        Toast.show({
+            type: 'error',
+            text1: 'error!',
+            text2: 'An error occurred.',
+        })
+
     }
   };
 
@@ -111,6 +138,7 @@ export default function LoginScreen() {
                     </TouchableOpacity>
                 </View>
             </View>
+            <Toast/>
         </SafeAreaView>
     )
 }

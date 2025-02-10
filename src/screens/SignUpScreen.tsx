@@ -2,16 +2,14 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Image,
   TextInput,
   Alert,
   StatusBar,
   StyleSheet,
   KeyboardAvoidingView, ScrollView, Platform
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeftIcon } from 'react-native-heroicons/solid';
 import { useNavigation } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
 import { RootStackParamList } from '../navigation/AppNavigator';
@@ -19,6 +17,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { signUp } from '../auth/auth';
 
 import { ArrowLeft, EyeOff } from "lucide-react-native"
+import Toast from "react-native-toast-message";
 
 type SignUpScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -48,42 +47,77 @@ export default function SignUpScreen() {
     try {
       // Check empty fields
       if (!firstName || !lastName || !username || !email || !phoneNumber || !password || !confirmPassword) {
-        Alert.alert('Error', 'Please fill in all fields');
+        // Alert.alert('Error', 'Please fill in all fields');
+        Toast.show({
+          type: 'error',
+          text1: 'error!',
+          text2: 'Please fill in all fields.',
+        });
         return;
       }
       // Validate email format
       if (!validateEmail(email)) {
         Alert.alert('Error', 'Please enter a valid email address');
+        Toast.show({
+          type: 'error',
+          text1: 'error!',
+          text2: 'Please enter a valid email address.',
+        });
         return;
       }
       // Validate phone number format
       if (!validatePhoneNumber(phoneNumber)) {
         Alert.alert('Error', 'Please enter a valid phone number');
+        Toast.show({
+          type: 'error',
+          text1: 'error!',
+          text2: 'Please enter a valid phone number.',
+        });
         return;
       }
       // Check password match
       if (password !== confirmPassword) {
         Alert.alert('Error', 'Passwords do not match');
+        Toast.show({
+          type: 'error',
+          text1: 'error!',
+          text2: 'Passwords do not match.',
+        });
         return;
       }
 
 
 
-      console.log(email,username,firstName,lastName,phoneNumber,password);
       const result = await signUp({ email, username, firstName, lastName, phoneNumber, password });
       if (!result.success && result.error) {
-        Alert.alert('Error', result.error);
+        // Alert.alert('Error', result.error);
+        Toast.show({
+          type: 'error',
+          text1: 'error!',
+          text2: result.error,
+        });
         return;
       }
+      await SecureStore.setItemAsync('userId', result.userInfo?.id ?? '');
+      await SecureStore.setItemAsync('userUsername', result.userInfo?.username ?? '');
+      await SecureStore.setItemAsync('userEmail', result.userInfo?.email ?? '');
+      await SecureStore.setItemAsync('userLastName', result.userInfo?.lastName ?? '');
+      await SecureStore.setItemAsync('userFirstName', result.userInfo?.firstName ?? '');
+      await SecureStore.setItemAsync('userPhoneNumber', result.userInfo?.phoneNumber ?? '');
       Alert.alert('Success', 'Account created successfully');
+      Toast.show({
+        type: 'success',
+        text1: 'Success!',
+        text2: 'Account created successfully.',
+      });
       navigation.navigate('ShareCalendar');
-      await SecureStore.setItemAsync('userEmail', email);
-      await SecureStore.setItemAsync('userUsername', username);
-      await SecureStore.setItemAsync('userFirstName', firstName);
-      await SecureStore.setItemAsync('userLastName', lastName);
-      await SecureStore.setItemAsync('userPhoneNumber', phoneNumber);
     } catch (error: any) {
       Alert.alert('Error', error.message);
+      Toast.show({
+        type: 'error',
+        text1: 'error!',
+        text2: "An error occurred.",
+      });
     }
   };
 
@@ -200,7 +234,7 @@ export default function SignUpScreen() {
                   </View>
                 </View>
 
-                <TouchableOpacity style={styles.createAccountButton}>
+                <TouchableOpacity style={styles.createAccountButton} onPress={handleSignUpPress}>
                   <Text style={styles.createAccountButtonText}>Create an account</Text>
                 </TouchableOpacity>
               </View>
@@ -215,6 +249,7 @@ export default function SignUpScreen() {
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
+        <Toast/>
       </SafeAreaView>
   )
 }
