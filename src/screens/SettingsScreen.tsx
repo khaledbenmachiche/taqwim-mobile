@@ -1,16 +1,20 @@
-"use client"
-
 import { useState } from "react"
 import { SafeAreaView, View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Alert } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
+import {useNavigation} from "@react-navigation/native";
+import {StackNavigationProp} from "@react-navigation/stack";
+import {RootStackParamList} from "../navigation/AppNavigator";
 
-export default function SettingsScreen({ navigation }) {
-  const [refreshTime, setRefreshTime] = useState(5)
-  const [selectedApps, setSelectedApps] = useState(["SMS", "WhatsApp", "Telegram"])
-  const [isEditing, setIsEditing] = useState(false)
+type SettingsScreenNavigationProp = StackNavigationProp<
+    RootStackParamList
+>;
 
+export default function SettingsScreen() {
+  const [refreshTime, setRefreshTime] = useState(5);
+  const [selectedApps, setSelectedApps] = useState(["SMS", "WhatsApp", "Telegram"]);
+  const [isEditing, setIsEditing] = useState(false);
   const apps = ["SMS", "WhatsApp", "Telegram", "Slack"]
-
+  const navigation : SettingsScreenNavigationProp = useNavigation();
   const incrementTime = () => {
     setRefreshTime((prev) => prev + 1)
     setIsEditing(false)
@@ -21,7 +25,7 @@ export default function SettingsScreen({ navigation }) {
     setIsEditing(false)
   }
 
-  const toggleApp = (app) => {
+  const toggleApp = (app: string) => {
     setSelectedApps((prev) => (prev.includes(app) ? prev.filter((a) => a !== app) : [...prev, app]))
   }
   const handleSaveChanges = async () => {

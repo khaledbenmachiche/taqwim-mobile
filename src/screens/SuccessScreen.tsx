@@ -18,7 +18,7 @@ interface Calendar {
 
 type SuccessScreenNavigationProp = StackNavigationProp<
     RootStackParamList,
-    'Home'
+    'NotificationsScreen'
 >;
 
 
@@ -131,7 +131,7 @@ export default function SuccessScreen() {
                     });
 
                     console.log(`Calendar ${calendar.id} shared and saved successfully:`, response);
-                    navigation.navigate("Home");
+                    navigation.navigate("NotificationsScreen");
                 } catch (error) {
                     console.error(`Failed to process calendar ${calendar.id}:`, error);
                     Toast.show({
@@ -176,7 +176,7 @@ export default function SuccessScreen() {
                 <Text style={styles.subtitle}>Your account setup is complete! Enjoy our notification system.</Text>
 
                 {/* Action Buttons */}
-                <TouchableOpacity style={styles.getStartedButton} onPress={()=> navigation.navigate("Home")}>
+                <TouchableOpacity style={styles.getStartedButton} onPress={()=> navigation.navigate("NotificationsScreen")}>
                     <Text style={styles.getStartedButtonText}>Get Started</Text>
                 </TouchableOpacity>
 

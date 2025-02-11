@@ -4,14 +4,22 @@ import { useState } from "react"
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Platform, Alert } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import * as ImagePicker from "expo-image-picker"
+import {useNavigation} from "@react-navigation/native";
+import {StackNavigationProp} from "@react-navigation/stack";
+import {RootStackParamList} from "../navigation/AppNavigator";
 
-export default function MyAccountScreen({ navigation }) {
+type MyAccountScreenNavigationProp = StackNavigationProp<
+    RootStackParamList
+>;
+
+export default function MyAccountScreen() {
+  const navigation:MyAccountScreenNavigationProp = useNavigation();
   const [formData, setFormData] = useState({
     name: "John",
     email: "Johndoe@email.com",
     phone: "(+1) 234 567 890",
     password: "••••••",
-  })
+  });
 
   const [showPassword, setShowPassword] = useState(false)
   const [profileImage, setProfileImage] = useState(
