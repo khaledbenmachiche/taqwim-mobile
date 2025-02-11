@@ -4,11 +4,11 @@ import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from '../screens/LoginScreen';
 import HomeScreen from '../screens/HomeScreen';
 import SignUpScreen from '../screens/SignUpScreen';
-import WelcomeScreen from '../screens/WelcomeScreen';
 import AccountScreen from '../screens/AccountScreen';
-import CalendarSharingScreen from '../screens/CalendarSharingScreen';
 import NotificationPreferencesScreen from '../screens/NotificationPreferencesScreen';
 import SuccessScreen from "../screens/SuccessScreen";
+import OnBoardingScreen from "../screens/OnBoardingScreen";
+
 const Stack = createStackNavigator();
 
 export type RootStackParamList = {
@@ -20,14 +20,15 @@ export type RootStackParamList = {
   ShareCalendar: undefined;
   NotificationPreferences: undefined;
   SuccessScreen: undefined;
+  OnBoardingScreen:undefined;
 };
 
 const AppNavigator = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator>
+        <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} options={{ headerShown: false }} />
         <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Welcome" component={WelcomeScreen} options={{ headerShown: false }} />
         <Stack.Screen name="SuccessScreen" component={SuccessScreen} options={{ headerShown: false }} />
         <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
         <Stack.Screen name="NotificationPreferences" component={NotificationPreferencesScreen} options={{ headerShown: false }} />

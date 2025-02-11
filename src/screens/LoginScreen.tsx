@@ -58,6 +58,7 @@ export default function LoginScreen() {
       await SecureStore.setItemAsync('userLastName', result.userInfo?.lastName ?? '');
       await SecureStore.setItemAsync('userFirstName', result.userInfo?.firstName ?? '');
       await SecureStore.setItemAsync('userPhoneNumber', result.userInfo?.phoneNumber ?? '');
+
       navigation.navigate('Home');
 
 
