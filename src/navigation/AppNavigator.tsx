@@ -5,12 +5,10 @@ import LoginScreen from '../screens/LoginScreen';
 import SignUpScreen from '../screens/SignUpScreen';
 import SuccessScreen from "../screens/SuccessScreen";
 import OnBoardingScreen from "../screens/OnBoardingScreen";
-
-import NotificationsScreen from '../screens/NotificationsScreen';
-import MyAccountScreen from '../screens/MyAccountScreen'
+import MyAccountScreen from '../screens/MyAccountScreen';
 import CalendarSubscriptionScreen from "../screens/CalendarSubscriptionScreen";
-import SettingsScreen from '../screens/SettingsScreen'
-import ProfileScreen from '../screens/ProfileScreen'
+import SettingsScreen from '../screens/SettingsScreen';
+import TabNavigator from './TabNavigator';
 
 const Stack = createStackNavigator();
 
@@ -19,28 +17,63 @@ export type RootStackParamList = {
   SignUp: undefined;
   SuccessScreen: undefined;
   Login: undefined;
-  ProfileScreen: undefined;
-  SettingsScreen: undefined;
+  MainTabs: undefined; // Add MainTabs route
+  MyAccountScreen: undefined;
   CalendarSubscription: undefined;
-  NotificationsScreen:undefined;
-  MyAccountScreen:undefined;
+  SettingsScreen: undefined;
 };
 
 const AppNavigator = () => {
   return (
-    <NavigationContainer>
-      <Stack.Navigator>
-        <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="SuccessScreen" component={SuccessScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="ProfileScreen" component={ProfileScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="SettingsScreen" component={SettingsScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="CalendarSubscription" component={CalendarSubscriptionScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="NotificationsScreen" component={NotificationsScreen} options={{ headerShown: false }} />
-        <Stack.Screen name="MyAccountScreen" component={MyAccountScreen} options={{ headerShown: false }} />
-      </Stack.Navigator>
-    </NavigationContainer>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="OnBoardingScreen">
+          {/* Authentication Screens */}
+          <Stack.Screen
+              name="OnBoardingScreen"
+              component={OnBoardingScreen}
+              options={{ headerShown: false }}
+          />
+          <Stack.Screen
+              name="SignUp"
+              component={SignUpScreen}
+              options={{ headerShown: false }}
+          />
+          <Stack.Screen
+              name="SuccessScreen"
+              component={SuccessScreen}
+              options={{ headerShown: false }}
+          />
+          <Stack.Screen
+              name="Login"
+              component={LoginScreen}
+              options={{ headerShown: false }}
+          />
+
+          {/* Main App Tabs */}
+          <Stack.Screen
+              name="MainTabs"
+              component={TabNavigator}
+              options={{ headerShown: false }}
+          />
+
+          {/* Additional Screens */}
+          <Stack.Screen
+              name="MyAccountScreen"
+              component={MyAccountScreen}
+              options={{ headerShown: false }}
+          />
+          <Stack.Screen
+              name="CalendarSubscription"
+              component={CalendarSubscriptionScreen}
+              options={{ headerShown: false }}
+          />
+          <Stack.Screen
+              name="SettingsScreen"
+              component={SettingsScreen}
+              options={{ headerShown: false }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
   );
 };
 
