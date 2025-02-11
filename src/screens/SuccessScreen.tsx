@@ -131,7 +131,11 @@ export default function SuccessScreen() {
                     });
 
                     console.log(`Calendar ${calendar.id} shared and saved successfully:`, response);
-                    navigation.navigate("NotificationsScreen");
+                    //navigation.navigate("NotificationsScreen");
+                    navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'NotificationsScreen' }],
+                    });
                 } catch (error) {
                     console.error(`Failed to process calendar ${calendar.id}:`, error);
                     Toast.show({
@@ -176,7 +180,14 @@ export default function SuccessScreen() {
                 <Text style={styles.subtitle}>Your account setup is complete! Enjoy our notification system.</Text>
 
                 {/* Action Buttons */}
-                <TouchableOpacity style={styles.getStartedButton} onPress={()=> navigation.navigate("NotificationsScreen")}>
+                <TouchableOpacity style={styles.getStartedButton} onPress={()=>{
+                    // navigation.navigate("NotificationsScreen");
+                    navigation.reset({
+                        index: 0,
+                        routes: [{ name: 'NotificationsScreen' }],
+                    });
+
+                } }>
                     <Text style={styles.getStartedButtonText}>Get Started</Text>
                 </TouchableOpacity>
 
