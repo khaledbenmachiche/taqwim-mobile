@@ -18,7 +18,7 @@ interface Calendar {
 
 type SuccessScreenNavigationProp = StackNavigationProp<
     RootStackParamList,
-    'NotificationsScreen'
+    'MainTabs'
 >;
 
 
@@ -134,7 +134,7 @@ export default function SuccessScreen() {
                     //navigation.navigate("NotificationsScreen");
                     navigation.reset({
                         index: 0,
-                        routes: [{ name: 'NotificationsScreen' }],
+                        routes: [{ name: 'MainTabs' }],
                     });
                 } catch (error) {
                     console.error(`Failed to process calendar ${calendar.id}:`, error);
@@ -184,7 +184,7 @@ export default function SuccessScreen() {
                     // navigation.navigate("NotificationsScreen");
                     navigation.reset({
                         index: 0,
-                        routes: [{ name: 'NotificationsScreen' }],
+                        routes: [{ name: 'MainTabs' }],
                     });
 
                 } }>

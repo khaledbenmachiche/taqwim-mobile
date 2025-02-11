@@ -1,11 +1,5 @@
-"use client"
-
-import { SetStateAction, useState} from "react"
-import {View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar, Platform} from "react-native"
-import {Ionicons} from "@expo/vector-icons"
-import {useNavigation} from "@react-navigation/native";
-import {StackNavigationProp} from "@react-navigation/stack";
-import {RootStackParamList} from "../navigation/AppNavigator";
+import React from 'react';
+import { View, Text, ScrollView, StyleSheet, SafeAreaView, StatusBar } from 'react-native';
 
 const NotificationCard = () => (
     <View style={styles.card}>
@@ -18,71 +12,34 @@ const NotificationCard = () => (
             <Text style={styles.descriptionText}>We will do the legs and back workout</Text>
           </View>
         </View>
-
       </View>
     </View>
-)
-
-type NotificationScreenNavigationProp = StackNavigationProp<
-    RootStackParamList,
-    "ProfileScreen"
->;
+);
 
 export default function NotificationsScreen() {
-  const [activeTab, setActiveTab] = useState("notifications")
-  const navigation: NotificationScreenNavigationProp = useNavigation();
-  const handleTabPress = (tab: SetStateAction<string>) => {
-    setActiveTab(tab)
-    if (tab === "profile") {
-      navigation.navigate("ProfileScreen")
-    }
-  }
-
-
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-
-      <View style={styles.header}>
-        <Text style={styles.headerText}>Notifications</Text>
-      </View>
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <NotificationCard />
-        <NotificationCard />
-        <NotificationCard />
-        <NotificationCard />
-        <NotificationCard />
-        <NotificationCard />
-                <NotificationCard />
-                <NotificationCard />
-      </ScrollView>
-
-      <View style={styles.bottomNav}>
-        <View style={styles.tabBar}>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === "notifications" && styles.activeTab]}
-            onPress={() => handleTabPress("notifications")}
-          >
-            <Ionicons name="notifications" size={20} color={activeTab === "notifications" ? "white" : "#1B7B5E"} />
-            {activeTab === "notifications" && <Text style={styles.tabText}>Notifications</Text>}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.tab, activeTab === "profile" && styles.activeTab]}
-            onPress={() => handleTabPress("profile")}
-          >
-            <Ionicons name="person" size={20} color={activeTab === "profile" ? "white" : "#1B7B5E"} />
-            {activeTab === "profile" && <Text style={styles.tabText}>Profile</Text>}
-          </TouchableOpacity>
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" />
+        <View style={styles.header}>
+          <Text style={styles.headerText}>Notifications</Text>
         </View>
-      </View>
-    </SafeAreaView>
-  )
+
+        <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+        >
+          <NotificationCard />
+          <NotificationCard />
+          <NotificationCard />
+          <NotificationCard />
+          <NotificationCard />
+          <NotificationCard />
+          <NotificationCard />
+          <NotificationCard />
+        </ScrollView>
+      </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -116,20 +73,11 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     borderWidth: 1,
     borderColor: "#F8F9FA",
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: {
-          width: 0,
-          height: 1,
-        },
-        shadowOpacity: 0.05,
-        shadowRadius: 3,
-      },
-      android: {
-        elevation: 2,
-      },
-    }),
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
   cardContent: {
     flexDirection: "row",
@@ -166,57 +114,4 @@ const styles = StyleSheet.create({
     fontSize: 16,
     lineHeight: 22,
   },
-  menuButton: {
-    padding: 4,
-    marginLeft: 16,
-    marginTop: 4,
-  },
-  bottomNav: {
-    position: "absolute",
-    bottom: 0,
-    left: 0,
-    right: 0,
-    paddingHorizontal: 16,
-    paddingBottom: Platform.OS === "ios" ? 24 : 16,
-    backgroundColor: "transparent",
-    alignItems: "center",
-  },
-  tabBar: {
-    flexDirection: "row",
-    backgroundColor: "white",
-    borderRadius: 25,
-    padding: 4,
-    ...Platform.select({
-      ios: {
-        shadowColor: "#000",
-        shadowOffset: {
-          width: 0,
-          height: 2,
-        },
-        shadowOpacity: 0.1,
-        shadowRadius: 4,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
-  },
-  tab: {
-    flexDirection: "row",
-    alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    marginHorizontal: 2,
-  },
-  activeTab: {
-    backgroundColor: "#1B7B5E",
-  },
-  tabText: {
-    color: "white",
-    marginLeft: 6,
-    fontSize: 14,
-    fontWeight: "500",
-  },
-})
-
+});

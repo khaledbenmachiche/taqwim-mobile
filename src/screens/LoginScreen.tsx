@@ -15,7 +15,7 @@ import { ArrowLeft, EyeOff } from "lucide-react-native"
 
 type LoginScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
-  'SignUp' | 'NotificationsScreen'
+  'SignUp' | 'MainTabs'
 >;
 
 export default function LoginScreen() {
@@ -67,7 +67,7 @@ export default function LoginScreen() {
 
       navigation.reset({
             index: 0,
-            routes: [{ name: 'NotificationsScreen' }],
+            routes: [{ name: 'MainTabs' }],
       });
 
 
