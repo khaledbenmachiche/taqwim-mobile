@@ -14,18 +14,26 @@ import {
   Platform,
 } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
+import {useNavigation} from "@react-navigation/native";
+import {StackNavigationProp} from "@react-navigation/stack";
+import {RootStackParamList} from "../navigation/AppNavigator";
 
-export default function CalendarSubscription({ navigation }) {
+type CalendarSubscriptionScreenNavigationProp = StackNavigationProp<
+    RootStackParamList,
+    'ProfileScreen'
+>;
+
+export default function CalendarSubscriptionScreen() {
   const [selectedCalendars, setSelectedCalendars] = useState([0, 1, 2, 3])
   const [isSaving, setIsSaving] = useState(false)
-
+  const navigation:CalendarSubscriptionScreenNavigationProp = useNavigation();
   const calendars = ["My personal calendar", "Lorem ipsum", "Lorem ipsum", "Lorem ipsum", "Lorem ipsum", "Lorem ipsum"]
 
   const handleGoBack = () => {
     navigation.goBack()
   }
 
-  const toggleCalendar = (index) => {
+  const toggleCalendar = (index: number) => {
     setSelectedCalendars((prev) => (prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]))
   }
 

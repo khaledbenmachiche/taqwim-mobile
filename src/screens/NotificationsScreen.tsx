@@ -1,34 +1,43 @@
 "use client"
 
-import { useState } from "react"
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar, Platform } from "react-native"
-import { Ionicons } from "@expo/vector-icons"
+import { SetStateAction, useState} from "react"
+import {View, Text, ScrollView, TouchableOpacity, StyleSheet, SafeAreaView, StatusBar, Platform} from "react-native"
+import {Ionicons} from "@expo/vector-icons"
+import {useNavigation} from "@react-navigation/native";
+import {StackNavigationProp} from "@react-navigation/stack";
+import {RootStackParamList} from "../navigation/AppNavigator";
 
 const NotificationCard = () => (
-  <View style={styles.card}>
-    <View style={styles.cardContent}>
-      <View style={styles.leftContent}>
-        <View style={styles.greenDot} />
-        <View>
-          <Text style={styles.timeText}>19:00-20:00</Text>
-          <Text style={styles.titleText}>Workout with Ella</Text>
-          <Text style={styles.descriptionText}>We will do the legs and back workout</Text>
+    <View style={styles.card}>
+      <View style={styles.cardContent}>
+        <View style={styles.leftContent}>
+          <View style={styles.greenDot}/>
+          <View>
+            <Text style={styles.timeText}>19:00-20:00</Text>
+            <Text style={styles.titleText}>Workout with Ella</Text>
+            <Text style={styles.descriptionText}>We will do the legs and back workout</Text>
+          </View>
         </View>
-      </View>
 
+      </View>
     </View>
-  </View>
 )
 
-export default function NotificationsScreen({ navigation }) {
-  const [activeTab, setActiveTab] = useState("notifications")
+type NotificationScreenNavigationProp = StackNavigationProp<
+    RootStackParamList,
+    "ProfileScreen"
+>;
 
-  const handleTabPress = (tab) => {
+export default function NotificationsScreen() {
+  const [activeTab, setActiveTab] = useState("notifications")
+  const navigation: NotificationScreenNavigationProp = useNavigation();
+  const handleTabPress = (tab: SetStateAction<string>) => {
     setActiveTab(tab)
     if (tab === "profile") {
       navigation.navigate("ProfileScreen")
     }
   }
+
 
   return (
     <SafeAreaView style={styles.container}>

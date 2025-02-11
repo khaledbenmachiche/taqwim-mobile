@@ -1,6 +1,4 @@
-"use client"
-
-import { useState, useRef } from "react"
+import { useState, useRef, SetStateAction} from "react";
 import {
   SafeAreaView,
   View,
@@ -13,17 +11,27 @@ import {
   Dimensions,
   ScrollView,
   Platform,
-} from "react-native"
-import { Ionicons } from "@expo/vector-icons"
+} from "react-native";
+import {Ionicons} from "@expo/vector-icons";
+import {useNavigation} from "@react-navigation/native";
+import {StackNavigationProp} from "@react-navigation/stack";
+import {RootStackParamList} from "../navigation/AppNavigator";
+import * as SecureStore from "expo-secure-store";
 
-const { height } = Dimensions.get("window")
+const {height} = Dimensions.get("window")
 
-export default function ProfileScreen({ navigation }) {
-  const [activeTab, setActiveTab] = useState("profile")
-  const [isLogoutVisible, setIsLogoutVisible] = useState(false)
-  const slideAnim = useRef(new Animated.Value(height)).current
+type ProfileScreenNavigationProp = StackNavigationProp<
+    RootStackParamList,
+    "NotificationsScreen" | "MyAccountScreen" | "CalendarSubscription" | "OnBoardingScreen"
+>;
 
-  const handleTabPress = (tab) => {
+export default function ProfileScreen() {
+  const [activeTab, setActiveTab] = useState("profile");
+  const [isLogoutVisible, setIsLogoutVisible] = useState(false);
+  const slideAnim = useRef(new Animated.Value(height)).current;
+  const navigation: ProfileScreenNavigationProp = useNavigation();
+
+  const handleTabPress = (tab: SetStateAction<string>) => {
     setActiveTab(tab)
     if (tab === "notifications") {
       navigation.navigate("NotificationsScreen")
@@ -48,10 +56,15 @@ export default function ProfileScreen({ navigation }) {
     }).start(() => setIsLogoutVisible(false))
   }
 
-  const handleLogout = () => {
-    hideLogoutModal()
-    // Add your logout logic here
-    console.log("Logging out...")
+  const handleLogout = async () => {
+    hideLogoutModal();
+    await SecureStore.deleteItemAsync('userId');
+    await SecureStore.deleteItemAsync('userUsername');
+    await SecureStore.deleteItemAsync('userEmail');
+    await SecureStore.deleteItemAsync('userLastName');
+    await SecureStore.deleteItemAsync('userFirstName');
+    await SecureStore.deleteItemAsync('userPhoneNumber');
+    navigation.navigate("OnBoardingScreen");
   }
 
   const menuItems = [
@@ -109,7 +122,7 @@ export default function ProfileScreen({ navigation }) {
             <TouchableOpacity key={index} style={styles.menuItem} onPress={item.onPress}>
               <View style={styles.menuItemLeft}>
                 <View style={styles.iconContainer}>
-                  <Ionicons name={item.icon} size={24} color="#1B7B5E" />
+                  <Ionicons name={item.icon as any} size={24} color="#1B7B5E" />
                 </View>
                 <Text style={styles.menuItemText}>{item.title}</Text>
               </View>

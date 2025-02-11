@@ -15,7 +15,7 @@ import { ArrowLeft, EyeOff } from "lucide-react-native"
 
 type LoginScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
-  'SignUp' | 'Home'
+  'SignUp' | 'NotificationsScreen'
 >;
 
 export default function LoginScreen() {
@@ -51,15 +51,19 @@ export default function LoginScreen() {
             text1: 'Success!',
             text2: 'Signed in successfully.',
       });
+      try {
+          await SecureStore.setItemAsync('userId', String(result.userInfo?.id) ?? '');
+          await SecureStore.setItemAsync('userUsername', result.userInfo?.username ?? '');
+          await SecureStore.setItemAsync('userEmail', result.userInfo?.email ?? '');
+          await SecureStore.setItemAsync('userLastName', result.userInfo?.lastName ?? '');
+          await SecureStore.setItemAsync('userFirstName', result.userInfo?.firstName ?? '');
+          await SecureStore.setItemAsync('userPhoneNumber', result.userInfo?.phoneNumber ?? '');
+      }catch(e){
 
-      await SecureStore.setItemAsync('userId', result.userInfo?.id ?? '');
-      await SecureStore.setItemAsync('userUsername', result.userInfo?.username ?? '');
-      await SecureStore.setItemAsync('userEmail', result.userInfo?.email ?? '');
-      await SecureStore.setItemAsync('userLastName', result.userInfo?.lastName ?? '');
-      await SecureStore.setItemAsync('userFirstName', result.userInfo?.firstName ?? '');
-      await SecureStore.setItemAsync('userPhoneNumber', result.userInfo?.phoneNumber ?? '');
+      }
 
-      navigation.navigate('Home');
+
+      navigation.navigate('NotificationsScreen');
 
 
       //Alert.alert('Success', 'Signed in successfully');

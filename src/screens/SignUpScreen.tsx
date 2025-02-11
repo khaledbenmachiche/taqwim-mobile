@@ -21,7 +21,7 @@ import Toast from "react-native-toast-message";
 
 type SignUpScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
-  'Login' | 'ShareCalendar'
+  'Login' | 'SuccessScreen'
 >;
 
 export default function SignUpScreen() {
@@ -98,7 +98,7 @@ export default function SignUpScreen() {
         });
         return;
       }
-      await SecureStore.setItemAsync('userId', result.userInfo?.id ?? '');
+      await SecureStore.setItemAsync('userId', String(result.userInfo?.id) ?? '');
       await SecureStore.setItemAsync('userUsername', result.userInfo?.username ?? '');
       await SecureStore.setItemAsync('userEmail', result.userInfo?.email ?? '');
       await SecureStore.setItemAsync('userLastName', result.userInfo?.lastName ?? '');
@@ -110,7 +110,7 @@ export default function SignUpScreen() {
         text1: 'Success!',
         text2: 'Account created successfully.',
       });
-      navigation.navigate('ShareCalendar');
+      navigation.navigate('SuccessScreen');
     } catch (error: any) {
       Alert.alert('Error', error.message);
       Toast.show({
