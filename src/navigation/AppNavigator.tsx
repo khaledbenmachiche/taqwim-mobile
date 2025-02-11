@@ -4,10 +4,10 @@ import { createStackNavigator } from '@react-navigation/stack';
 import LoginScreen from '../screens/LoginScreen';
 import HomeScreen from '../screens/HomeScreen';
 import SignUpScreen from '../screens/SignUpScreen';
-import WelcomeScreen from '../screens/WelcomeScreen';
 import AccountScreen from '../screens/AccountScreen';
-import CalendarSharingScreen from '../screens/CalendarSharingScreen';
 import NotificationPreferencesScreen from '../screens/NotificationPreferencesScreen';
+import SuccessScreen from "../screens/SuccessScreen";
+import OnBoardingScreen from "../screens/OnBoardingScreen";
 
 import NotificationsScreen from '../screens/NotificationsScreen';
 import MyAccountScreen from '../screens/MyAccountScreen'
@@ -27,81 +27,31 @@ export type RootStackParamList = {
   Account: undefined;
   ShareCalendar: undefined;
   NotificationPreferences: undefined;
+  SuccessScreen: undefined;
+  OnBoardingScreen:undefined;
   Notifications: undefined;
 };
 
 const AppNavigator = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator initialRouteName="ProfileScreen">
-            <Stack.Screen
-                                                     name="Notifications"
-                                                 component={Notifications}
-                                                 options={{ headerShown: false }}
-                                               />
-           <Stack.Screen
-                                     name="ProfileScreen"
-                                     component={ProfileScreen}
-                                     options={{ headerShown: false }}
-                                   />
-          <Stack.Screen
-                           name="SettingsScreen"
-                           component={SettingsScreen}
-                           options={{ headerShown: false }}
-                         />
-          <Stack.Screen
-                                     name="CalendarSubscription"
-                                     component={CalendarSubscription}
-                                     options={{ headerShown: false }}
-                                   />
-         <Stack.Screen
-                  name="NotificationsScreen"
-                  component={NotificationsScreen}
-                  options={{ headerShown: false }}
-                />
-
-         <Stack.Screen
-                           name="MyAccountScreen"
-                           component={MyAccountScreen}
-                           options={{ headerShown: false }}
-                         />
-
-        <Stack.Screen
-          name="Welcome"
-          component={WelcomeScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="SignUp"
-          component={SignUpScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Login"
-          component={LoginScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Home"
-          component={HomeScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="Account"
-          component={AccountScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="ShareCalendar"
-          component={CalendarSharingScreen}
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="NotificationPreferences"
-          component={NotificationPreferencesScreen}
-          options={{ headerShown: false }}
-        />
-
+      <Stack.Navigator>
+        <Stack.Screen name="OnBoardingScreen" component={OnBoardingScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SuccessScreen" component={SuccessScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="NotificationPreferences" component={NotificationPreferencesScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Account" component={AccountScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Notifications" component={Notifications} options={{ headerShown: false } />
+        <Stack.Screen name="ProfileScreen" component={ProfileScreen} options={{ headerShown: false }} />                                                                    
+        <Stack.Screen name="SettingsScreen" component={SettingsScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="CalendarSubscription" component={CalendarSubscription} options={{ headerShown: false }} />
+        <Stack.Screen name="NotificationsScreen" component={NotificationsScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="MyAccountScreen" component={MyAccountScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Account" component={AccountScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="ShareCalendar" component={CalendarSharingScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="NotificationPreferences" component={NotificationPreferencesScreen} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );
