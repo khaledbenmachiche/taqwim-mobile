@@ -244,7 +244,7 @@ export default function SignUpScreen() {
           {/* Footer */}
           <View style={styles.footer}>
             <Text style={styles.footerText}>Have an account? </Text>
-            <TouchableOpacity onPress={()=> navigation.navigate("Login")}>
+            <TouchableOpacity onPress={()=> navigation.replace("Login")}>
               <Text style={styles.signInText}>Sign In</Text>
             </TouchableOpacity>
           </View>

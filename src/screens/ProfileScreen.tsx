@@ -64,7 +64,11 @@ export default function ProfileScreen() {
     await SecureStore.deleteItemAsync('userLastName');
     await SecureStore.deleteItemAsync('userFirstName');
     await SecureStore.deleteItemAsync('userPhoneNumber');
-    navigation.navigate("OnBoardingScreen");
+    // navigation.navigate("OnBoardingScreen");
+    navigation.reset({
+      index: 0,
+      routes: [{ name: 'OnBoardingScreen' }],
+    });
   }
 
   const menuItems = [

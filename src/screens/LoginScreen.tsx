@@ -63,7 +63,12 @@ export default function LoginScreen() {
       }
 
 
-      navigation.navigate('NotificationsScreen');
+      // navigation.navigate('NotificationsScreen');
+
+      navigation.reset({
+            index: 0,
+            routes: [{ name: 'NotificationsScreen' }],
+      });
 
 
       //Alert.alert('Success', 'Signed in successfully');
@@ -138,7 +143,7 @@ export default function LoginScreen() {
                 {/* Footer */}
                 <View style={styles.footer}>
                     <Text style={styles.footerText}>Don't have an account? </Text>
-                    <TouchableOpacity onPress={()=> navigation.navigate("SignUp")}>
+                    <TouchableOpacity onPress={()=> navigation.replace("SignUp")}>
                         <Text style={styles.signUpText}>Sign Up</Text>
                     </TouchableOpacity>
                 </View>
