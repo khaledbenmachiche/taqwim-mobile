@@ -18,6 +18,8 @@ import { signUp } from '../auth/auth';
 
 import { ArrowLeft, EyeOff } from "lucide-react-native"
 import Toast from "react-native-toast-message";
+import registerForPushNotificationsAsync from "../utils/registerForPushNotificationsAsync";
+import savePushTokenToBackend from "../utils/savePushTokenToBackend";
 
 type SignUpScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
@@ -98,13 +100,22 @@ export default function SignUpScreen() {
         });
         return;
       }
-      await SecureStore.setItemAsync('userId', String(result.userInfo?.id) ?? '');
-      await SecureStore.setItemAsync('userUsername', result.userInfo?.username ?? '');
-      await SecureStore.setItemAsync('userEmail', result.userInfo?.email ?? '');
-      await SecureStore.setItemAsync('userLastName', result.userInfo?.lastName ?? '');
-      await SecureStore.setItemAsync('userFirstName', result.userInfo?.firstName ?? '');
-      await SecureStore.setItemAsync('userPhoneNumber', result.userInfo?.phoneNumber ?? '');
-      Alert.alert('Success', 'Account created successfully');
+      try {
+        await SecureStore.setItemAsync('userId', String(result.userInfo?.id) ?? '');
+        await SecureStore.setItemAsync('userUsername', result.userInfo?.username ?? '');
+        await SecureStore.setItemAsync('userEmail', result.userInfo?.email ?? '');
+        await SecureStore.setItemAsync('userLastName', result.userInfo?.lastName ?? '');
+        await SecureStore.setItemAsync('userFirstName', result.userInfo?.firstName ?? '');
+        await SecureStore.setItemAsync('userPhoneNumber', result.userInfo?.phoneNumber ?? '');
+
+        registerForPushNotificationsAsync().then(token => {
+          const userId : string|undefined = result.userInfo?.id;
+          if (token && userId) {
+            savePushTokenToBackend(token,userId);
+          }
+        });
+      }catch (error:any){}
+      // Alert.alert('Success', 'Account created successfully');
       Toast.show({
         type: 'success',
         text1: 'Success!',

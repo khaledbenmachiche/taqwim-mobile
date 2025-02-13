@@ -7,10 +7,11 @@ import { RootStackParamList } from '../navigation/AppNavigator';
 import { StackNavigationProp } from '@react-navigation/stack';
 import Toast from 'react-native-toast-message';
 
-
 import { useState } from "react"
 import { StyleSheet, Text, View, TextInput, TouchableOpacity, SafeAreaView, StatusBar } from "react-native"
 import { ArrowLeft, EyeOff } from "lucide-react-native"
+import registerForPushNotificationsAsync from "../utils/registerForPushNotificationsAsync";
+import savePushTokenToBackend from "../utils/savePushTokenToBackend";
 
 
 type LoginScreenNavigationProp = StackNavigationProp<
@@ -58,6 +59,12 @@ export default function LoginScreen() {
           await SecureStore.setItemAsync('userLastName', result.userInfo?.lastName ?? '');
           await SecureStore.setItemAsync('userFirstName', result.userInfo?.firstName ?? '');
           await SecureStore.setItemAsync('userPhoneNumber', result.userInfo?.phoneNumber ?? '');
+          registerForPushNotificationsAsync().then(token => {
+              const userId : string|undefined = result.userInfo?.id;
+              if (token && userId) {
+                  savePushTokenToBackend(token,userId);
+              }
+          });
       }catch(e){
 
       }
