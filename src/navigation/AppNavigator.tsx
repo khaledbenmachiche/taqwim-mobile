@@ -34,13 +34,6 @@ const AppNavigator = () => {
       const userId = await SecureStore.getItemAsync('userId');
       if (!userId) return null;
 
-      const response = await httpRequest(`/app/authentification/refresh/${userId}`,"GET");
-      const newAccessToken = response.access_token;
-
-      if (newAccessToken) {
-        await SecureStore.setItemAsync('accessToken', newAccessToken);
-        return newAccessToken;
-      }
     } catch (error) {
       console.error('Error refreshing token:', error);
       return null;
@@ -57,11 +50,6 @@ const AppNavigator = () => {
           setInitialRoute('OnBoardingScreen');
           return;
         }
-
-        if (!accessToken) {
-          accessToken = await refreshToken();
-        }
-
         if (accessToken) {
           setInitialRoute('MainTabs');
         } else {
