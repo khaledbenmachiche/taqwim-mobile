@@ -4,6 +4,7 @@ import { Ionicons } from "@expo/vector-icons"
 import {useNavigation} from "@react-navigation/native";
 import {StackNavigationProp} from "@react-navigation/stack";
 import {RootStackParamList} from "../navigation/AppNavigator";
+import Toast from "react-native-toast-message";
 
 type SettingsScreenNavigationProp = StackNavigationProp<
     RootStackParamList
@@ -30,15 +31,22 @@ export default function SettingsScreen() {
   }
   const handleSaveChanges = async () => {
     try {
-      // Simulate API call
+
       await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // Here you would typically make an API call to save the changes
       // const response = await api.updateSettings({ refreshTime, selectedApps });
-
-      Alert.alert("Success", "Your settings have been saved successfully!", [{ text: "OK" }])
+      Toast.show({
+              type: "success",
+              text1: "Success!",
+              text2: "Your settings have been saved successfully!",
+      })
+      
     } catch (error) {
-      Alert.alert("Error", "Failed to save changes. Please try again.", [{ text: "OK" }])
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to save changes. Please try again.",
+})
+    
     }
   }
   return (
@@ -57,7 +65,7 @@ export default function SettingsScreen() {
       </View>
 
       <ScrollView style={styles.content}>
-        {/* Refresh Time Section */}
+        {/* Refresh Time Section 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Refresh time</Text>
           <Text style={styles.sectionSubtitle}>Decide the frequency you want to load events with</Text>
@@ -105,10 +113,10 @@ export default function SettingsScreen() {
             </TouchableOpacity>
           </View>
         </View>
-
+         */}
         {/* Apps Authorization Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Apps Autorizations</Text>
+          <Text style={styles.sectionTitle}>Apps Authorizations</Text>
           <Text style={styles.sectionSubtitle}>Choose the apps from which you want to receive notifications</Text>
 
           <View style={styles.appsList}>
@@ -130,6 +138,7 @@ export default function SettingsScreen() {
           <Text style={styles.saveButtonText}>Save Changes</Text>
         </TouchableOpacity>
       </View>
+    <Toast/>
     </SafeAreaView>
   )
 }

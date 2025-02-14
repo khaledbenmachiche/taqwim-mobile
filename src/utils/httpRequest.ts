@@ -1,26 +1,29 @@
 import Constants  from "expo-constants";
 
 const apiBaseUrl = Constants.manifest.extra.apiBaseUrl;
-
-const httpRequest = async (endpoint:string, method:string, body:object) => {
+const httpRequest = async (endpoint: string, method: string = "GET", body?: object) => {
   try {
-    const response = await fetch(`${apiBaseUrl}${endpoint}`, {
+    const options: RequestInit = {
       method,
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
-      body: JSON.stringify(body),
-    });
+    };
 
+    if (body && method !== "GET") {
+      options.body = JSON.stringify(body);
+    }
+
+    const response = await fetch(`${apiBaseUrl}${endpoint}`, options);
     const responseData = await response.json();
 
     if (!response.ok) {
-      throw new Error(responseData.message || 'Request failed');
+      throw new Error(responseData.message || `Error ${response.status}`);
     }
 
     return responseData;
   } catch (error: any) {
-    throw new Error(error.message || 'Network request failed');
+    throw new Error(error?.message || "Network request failed");
   }
 };
 
