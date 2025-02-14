@@ -99,12 +99,13 @@ export default function SignUpScreen() {
         return;
       }
       await SecureStore.setItemAsync('userId', String(result.userInfo?.id) ?? '');
+      
       await SecureStore.setItemAsync('userUsername', result.userInfo?.username ?? '');
       await SecureStore.setItemAsync('userEmail', result.userInfo?.email ?? '');
       await SecureStore.setItemAsync('userLastName', result.userInfo?.lastName ?? '');
       await SecureStore.setItemAsync('userFirstName', result.userInfo?.firstName ?? '');
       await SecureStore.setItemAsync('userPhoneNumber', result.userInfo?.phoneNumber ?? '');
-      Alert.alert('Success', 'Account created successfully');
+      //Alert.alert('Success', 'Account created successfully');
       Toast.show({
         type: 'success',
         text1: 'Success!',
@@ -112,7 +113,7 @@ export default function SignUpScreen() {
       });
       navigation.navigate('SuccessScreen');
     } catch (error: any) {
-      Alert.alert('Error', error.message);
+      //Alert.alert('Error', error.message);
       Toast.show({
         type: 'error',
         text1: 'error!',

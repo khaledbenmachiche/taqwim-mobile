@@ -1,30 +1,67 @@
 "use client"
 
-import { useState } from "react"
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Platform, Alert } from "react-native"
+import { useState, useEffect, useCallback } from "react"
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Platform, Alert,ScrollView } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import * as ImagePicker from "expo-image-picker"
-import {useNavigation} from "@react-navigation/native";
+import {useNavigation, useFocusEffect} from "@react-navigation/native";
 import {StackNavigationProp} from "@react-navigation/stack";
 import {RootStackParamList} from "../navigation/AppNavigator";
+import * as SecureStore from 'expo-secure-store';
+import { User } from "lucide-react-native"
+import httpRequest from "../utils/httpRequest";
+import { useIsFocused } from '@react-navigation/native';
+import Toast from "react-native-toast-message";
 
 type MyAccountScreenNavigationProp = StackNavigationProp<
     RootStackParamList
 >;
+interface formDataType {
+  firstName : string ,
+  lastName : string ,
+  email : string ,
+  phone : string ,
+  password ?: string ,
+  id : string ,
+  username : string ,}
 
 export default function MyAccountScreen() {
   const navigation:MyAccountScreenNavigationProp = useNavigation();
-  const [formData, setFormData] = useState({
-    name: "John",
-    email: "Johndoe@email.com",
-    phone: "(+1) 234 567 890",
-    password: "••••••",
+  const [formData, setFormData] = useState <formDataType>({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    password: "",
+    id: "",
+    username: "",
   });
-
+  const isFocused = useIsFocused();
   const [showPassword, setShowPassword] = useState(false)
   const [profileImage, setProfileImage] = useState(
     "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/9.%20Profile-li6E6VcQw3LrU3IPtu5I1uvVksnjj3.png",
   )
+  const fetchProfile = useCallback(async () => {
+    try {
+      const phone = (await SecureStore.getItemAsync("userPhoneNumber")) ?? ""
+      const email = (await SecureStore.getItemAsync("userEmail")) ?? ""
+      const lastName = (await SecureStore.getItemAsync("userLastName")) ?? ""
+      const firstName = (await SecureStore.getItemAsync("userFirstName")) ?? ""
+      const id = (await SecureStore.getItemAsync("userId")) ?? ""
+      const username = (await SecureStore.getItemAsync("userUsername")) ?? ""
+
+      setFormData({ phone, email, lastName, firstName, id, username, password: "" })
+    } catch (error) {
+      console.error("Error fetching profile:", error)
+    }
+  }, [])
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchProfile()
+    }, [fetchProfile]),
+  )
+
 
   const pickImage = async () => {
     try {
@@ -50,11 +87,47 @@ export default function MyAccountScreen() {
       Alert.alert("Error picking image")
     }
   }
+  //TODO : fix update reload page
+  //TODO : TOAST
+  const handleSaveChanges = async () => {
+    try {
+      const updatedData = {
+        ...formData,
+        last_name: formData.lastName,
+        first_name: formData.firstName,
+        phone_number: formData.phone,
+      }
+      if (updatedData.password === "") {
+        delete updatedData.password
+      }
+      const result = await httpRequest(`/app/user/${formData.id}`, "PUT", updatedData)
 
-  const handleSaveChanges = () => {
-    // Here you would typically make an API call to save the changes
-    Alert.alert("Success", "Changes saved successfully!")
-  }
+      await SecureStore.setItemAsync("userId", String(result.id) ?? "")
+      await SecureStore.setItemAsync("userUsername", result.username ?? "")
+      await SecureStore.setItemAsync("userEmail", result.email ?? "")
+      await SecureStore.setItemAsync("userLastName", result.last_name ?? "")
+      await SecureStore.setItemAsync("userFirstName", result.first_name ?? "")
+      await SecureStore.setItemAsync("userPhoneNumber", result.phone_number ?? "")
+
+      Toast.show({
+        type: "success",
+        text1: "Success!",
+        text2: "Account updated successfully.",
+      })
+
+      // Refresh the profile data after saving changes
+      fetchProfile()
+    } catch (e) {
+      console.error("Error updating account:", e)
+      Toast.show({
+        type: "error",
+        text1: "Error",
+        text2: "Failed to update account. Please try again.",
+      })
+    }
+  };
+
+
 
   return (
     <View style={styles.container}>
@@ -76,16 +149,38 @@ export default function MyAccountScreen() {
           <Text style={styles.changePictureText}>Change Picture</Text>
         </TouchableOpacity>
       </View>
-
+      <ScrollView 
+      style={styles.scrollView} 
+      contentContainerStyle={styles.scrollContainer} 
+      showsVerticalScrollIndicator={true}
+    > 
       {/* Form */}
       <View style={styles.form}>
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>Name</Text>
+          <Text style={styles.label}>First Name</Text>
           <TextInput
             style={styles.input}
-            value={formData.name}
-            onChangeText={(text) => setFormData({ ...formData, name: text })}
-            placeholder="Enter your name"
+            value={formData.firstName}
+            onChangeText={(text) => setFormData({ ...formData, firstName: text })}
+            placeholder="Enter your First Name"
+          />
+        </View>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Last Name</Text>
+          <TextInput
+            style={styles.input}
+            value={formData.lastName}
+            onChangeText={(text) => setFormData({ ...formData, lastName: text })}
+            placeholder="Enter your Last Name"
+          />
+        </View>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>Username</Text>
+          <TextInput
+            style={styles.input}
+            value={formData.username}
+            onChangeText={(text) => setFormData({ ...formData, username: text })}
+            placeholder="Enter your Username"
           />
         </View>
 
@@ -136,6 +231,8 @@ export default function MyAccountScreen() {
       <TouchableOpacity style={styles.saveButton} onPress={handleSaveChanges}>
         <Text style={styles.saveButtonText}>Save Changes</Text>
       </TouchableOpacity>
+      </ScrollView>
+     <Toast/>
     </View>
   )
 }
@@ -241,5 +338,12 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
   },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContainer: {
+    paddingBottom: 100, 
+  },
+  
 })
 

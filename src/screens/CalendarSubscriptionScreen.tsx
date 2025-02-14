@@ -1,6 +1,4 @@
-"use client"
-
-import { useState } from "react"
+import { useState, useEffect } from "react";
 import {
   SafeAreaView,
   View,
@@ -9,55 +7,136 @@ import {
   ScrollView,
   StyleSheet,
   StatusBar,
-  Alert,
   ActivityIndicator,
   Platform,
-} from "react-native"
-import { Ionicons } from "@expo/vector-icons"
-import {useNavigation} from "@react-navigation/native";
-import {StackNavigationProp} from "@react-navigation/stack";
-import {RootStackParamList} from "../navigation/AppNavigator";
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { RootStackParamList } from "../navigation/AppNavigator";
+import { GoogleSignin } from "@react-native-google-signin/google-signin";
+import * as SecureStore from 'expo-secure-store';
+import httpRequest from "../utils/httpRequest";
+import Toast from "react-native-toast-message";
+
+interface Calendar {
+  id: string;
+  summary: string;
+  accessRole: string;
+}
 
 type CalendarSubscriptionScreenNavigationProp = StackNavigationProp<
-    RootStackParamList,
-    'ProfileScreen'
+  RootStackParamList,
+  'ProfileScreen'
 >;
 
 export default function CalendarSubscriptionScreen() {
-  const [selectedCalendars, setSelectedCalendars] = useState([0, 1, 2, 3])
-  const [isSaving, setIsSaving] = useState(false)
-  const navigation:CalendarSubscriptionScreenNavigationProp = useNavigation();
-  const calendars = ["My personal calendar", "Lorem ipsum", "Lorem ipsum", "Lorem ipsum", "Lorem ipsum", "Lorem ipsum"]
+  const [selectedCalendars, setSelectedCalendars] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
+  const navigation = useNavigation<CalendarSubscriptionScreenNavigationProp>();
+  const [calendars, setCalendars] = useState<Calendar[]>([]);
+  const [isFetchingCalendars, setIsFetchingCalendars] = useState(false);
+
+  useEffect(() => {
+    const fetchCalendars = async (accessToken: string) => {
+      try {
+        setIsFetchingCalendars(true);
+        const response = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        if (!response.ok) {
+          const errorBody = await response.text();
+          throw new Error(`Failed to fetch calendars: ${response.status} - ${errorBody}`);
+        }
+
+        const data = await response.json();
+        const filteredCalendars = data.items.filter((calendar: Calendar) => {
+          return calendar.accessRole === 'owner';
+        });
+
+        setCalendars(filteredCalendars);
+      } catch (error) {
+        console.error(`Error fetching calendars: ${error instanceof Error ? error.message : 'Unknown'}`);
+      } finally {
+        setIsFetchingCalendars(false);
+      }
+    };
+
+    const fetchGoogleToken = async () => {
+      try {
+        const { accessToken } = await GoogleSignin.getTokens();
+        await fetchCalendars(accessToken);
+      } catch (error) {
+        console.error('Failed to get access token:', error);
+      }
+    };
+
+    const fetchSelectedCalendars = async () => {
+      try {
+        const id = await SecureStore.getItemAsync('userId');
+        if (!id) {
+          throw new Error('Failed user is not signed in');
+        }
+        const data = await httpRequest(`/app/calendar/user/${id}`, "GET");
+        setSelectedCalendars(data.map(item => item.google_calendar_id));
+      } catch (e) {
+        console.error('Failed to fetch selected calendars', e);
+      }
+    };
+
+    fetchGoogleToken();
+    fetchSelectedCalendars();
+  }, []);
 
   const handleGoBack = () => {
-    navigation.goBack()
-  }
+    navigation.goBack();
+  };
 
-  const toggleCalendar = (index: number) => {
-    setSelectedCalendars((prev) => (prev.includes(index) ? prev.filter((i) => i !== index) : [...prev, index]))
-  }
+  const toggleCalendar = (id: string) => {
+    setSelectedCalendars((prev) =>
+      prev.includes(id) ? prev.filter((i) => i !== id) : [...prev, id]
+    );
+  };
 
   const handleSaveChanges = async () => {
     try {
-      setIsSaving(true)
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-
-      // Here you would typically make an API call to save the changes
-      // const response = await api.updateCalendarSubscriptions(selectedCalendars);
-
-      Alert.alert("Success", "Your calendar preferences have been saved successfully!", [
-        {
-          text: "OK",
-          onPress: handleGoBack,
-        },
-      ])
+      setIsSaving(true);
+      const userId = await SecureStore.getItemAsync('userId');
+      if (!userId) {
+        throw new Error('User not signed in');
+      }
+  
+      const response = await httpRequest(`/app/calendar/user/${userId}`, "POST", {
+        selected_calendars: calendars
+          .filter(item => selectedCalendars.includes(item.id))  
+          .map(item => ({ google_calendar_id: item.id, summary: item.summary })) 
+      });
+      
+  
+      if (response.error) {
+        throw new Error(response.error);
+      }
+  
+      Toast.show({
+        type: 'success',
+        text1: 'Success!',
+        text2: 'Your calendar preferences have been saved successfully.',
+      });
     } catch (error) {
-      Alert.alert("Error", "Failed to save changes. Please try again.", [{ text: "OK" }])
+      Toast.show({
+        type: 'error',
+        text1: 'Error',
+        text2: 'Failed to save changes. Please try again.',
+      });
     } finally {
-      setIsSaving(false)
+      setIsSaving(false);
     }
-  }
+  };
+  
 
   return (
     <SafeAreaView style={styles.container}>
@@ -74,7 +153,9 @@ export default function CalendarSubscriptionScreen() {
 
       {/* Banner */}
       <View style={styles.banner}>
-        <Text style={styles.bannerText}>Select the calendars that you want to subscribe to.</Text>
+        <Text style={styles.bannerText}>
+          Select the calendars that you want to subscribe to.
+        </Text>
       </View>
 
       {/* Calendar List */}
@@ -83,18 +164,23 @@ export default function CalendarSubscriptionScreen() {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {calendars.map((calendar, index) => (
+        {calendars.map((calendar) => (
           <TouchableOpacity
-            key={index}
+            key={calendar.id}
             style={styles.calendarItem}
-            onPress={() => toggleCalendar(index)}
+            onPress={() => toggleCalendar(calendar.id)}
             activeOpacity={0.7}
           >
             <View style={styles.calendarContent}>
-              <View style={[styles.checkbox, selectedCalendars.includes(index) && styles.checkboxSelected]}>
-                {selectedCalendars.includes(index) && <Ionicons name="checkmark" size={18} color="white" />}
+              <View
+                style={[styles.checkbox, selectedCalendars.includes(calendar.id) && styles.checkboxSelected]}
+              >
+                {selectedCalendars.includes(calendar.id) && (
+                  <Ionicons name="checkmark" size={18} color="white" />
+                )}
               </View>
-              <Text style={styles.calendarText}>{calendar}</Text>
+              {/* Display the calendar summary */}
+              <Text style={styles.calendarText}>{calendar.summary}</Text>
             </View>
           </TouchableOpacity>
         ))}
@@ -102,12 +188,22 @@ export default function CalendarSubscriptionScreen() {
 
       {/* Save Button */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.saveButton} onPress={handleSaveChanges} disabled={isSaving} activeOpacity={0.9}>
-          {isSaving ? <ActivityIndicator color="white" /> : <Text style={styles.saveButtonText}>Save Changes</Text>}
+        <TouchableOpacity
+          style={styles.saveButton}
+          onPress={handleSaveChanges}
+          disabled={isSaving}
+          activeOpacity={0.9}
+        >
+          {isSaving ? (
+            <ActivityIndicator color="white" />
+          ) : (
+            <Text style={styles.saveButtonText}>Save Changes</Text>
+          )}
         </TouchableOpacity>
       </View>
+      <Toast />
     </SafeAreaView>
-  )
+  );
 }
 
 const styles = StyleSheet.create({
@@ -142,8 +238,8 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   bannerText: {
-    fontSize: 24,
-    lineHeight: 32,
+    fontSize: 20,
+    lineHeight: 28,
     color: "#000000",
     fontWeight: "400",
   },
@@ -154,8 +250,8 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   calendarItem: {
-    marginBottom: 12,
-    borderRadius: 16,
+    marginBottom: 14,
+    borderRadius: 12,
     backgroundColor: "white",
     borderWidth: 1,
     borderColor: "#F1F5F9",
@@ -166,11 +262,11 @@ const styles = StyleSheet.create({
           width: 0,
           height: 1,
         },
-        shadowOpacity: 0.05,
-        shadowRadius: 3,
+        shadowOpacity: 0.1,
+        shadowRadius: 5,
       },
       android: {
-        elevation: 2,
+        elevation: 3,
       },
     }),
   },
@@ -180,19 +276,19 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   checkbox: {
-    width: 24,
-    height: 24,
+    width: 28,
+    height: 28,
     borderRadius: 6,
     borderWidth: 1.5,
-    borderColor: "#20845A", // Updated to new color
-    marginRight: 12,
+    borderColor: "#20845A",
+    marginRight: 16,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "white",
   },
   checkboxSelected: {
-    backgroundColor: "#20845A", // Updated to new color
-    borderColor: "#20845A", // Updated to new color
+    backgroundColor: "#20845A",
+    borderColor: "#20845A",
   },
   calendarText: {
     fontSize: 18,
@@ -205,16 +301,23 @@ const styles = StyleSheet.create({
     backgroundColor: "white",
   },
   saveButton: {
-    backgroundColor: "#1B7B5E", // Kept original color
+    backgroundColor: "#1B7B5E",
     borderRadius: 12,
     height: 56,
     alignItems: "center",
     justifyContent: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    elevation: 5,
   },
   saveButtonText: {
     color: "white",
     fontSize: 16,
     fontWeight: "600",
   },
-})
-
+});

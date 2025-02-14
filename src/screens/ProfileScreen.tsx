@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -17,6 +17,9 @@ import { useNavigation } from '@react-navigation/native';
 import * as SecureStore from 'expo-secure-store';
 import {StackNavigationProp} from "@react-navigation/stack";
 import {RootStackParamList} from "../navigation/AppNavigator";
+import { GoogleSignin, statusCodes } from '@react-native-google-signin/google-signin';
+import Toast from 'react-native-toast-message';
+import Constants from 'expo-constants';
 
 const { height } = Dimensions.get("window");
 
@@ -28,9 +31,38 @@ type ProfileScreenNavigationProp = StackNavigationProp<
 
 export default function ProfileScreen() {
   const [isLogoutVisible, setIsLogoutVisible] = useState(false);
+  const [profile, setProfile] = useState({ phone: "", lastName: "", firstName: "" });
   const slideAnim = useRef(new Animated.Value(height)).current;
   const navigation:ProfileScreenNavigationProp = useNavigation();
+  
 
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const phone = await SecureStore.getItemAsync("userPhoneNumber")?? "";
+        // const email = await SecureStore.getItemAsync("userEmail");
+        const lastName = await SecureStore.getItemAsync("userLastName")?? "";
+        const firstName = await SecureStore.getItemAsync("userFirstName")?? "";
+
+        setProfile({ phone, lastName, firstName });
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+  useEffect(()=> {
+    GoogleSignin.configure({
+        webClientId: Constants.manifest.extra.googleWebClientId,
+        scopes: [
+            'https://www.googleapis.com/auth/calendar',
+            'https://www.googleapis.com/auth/calendar.events',
+        ],
+        offlineAccess: true,
+        forceCodeForRefreshToken: false,
+    });
+},[]);
   const showLogoutModal = () => {
     setIsLogoutVisible(true);
     Animated.spring(slideAnim, {
@@ -50,17 +82,35 @@ export default function ProfileScreen() {
   };
 
   const handleLogout = async () => {
-    hideLogoutModal();
-    await SecureStore.deleteItemAsync('userId');
-    await SecureStore.deleteItemAsync('userUsername');
-    await SecureStore.deleteItemAsync('userEmail');
-    await SecureStore.deleteItemAsync('userLastName');
-    await SecureStore.deleteItemAsync('userFirstName');
-    await SecureStore.deleteItemAsync('userPhoneNumber');
-    navigation.reset({
-      index: 0,
-      routes: [{ name: 'OnBoardingScreen' }],
-    });
+    try {
+      /*
+      const isSignedIn = GoogleSignin.hasPreviousSignIn();
+      if (isSignedIn) {
+          await GoogleSignin.revokeAccess();
+          await GoogleSignin.signOut();
+      }
+      */
+      hideLogoutModal();
+      //await SecureStore.deleteItemAsync("googleCalendarAccessToken");
+      await SecureStore.deleteItemAsync('userId');
+      await SecureStore.deleteItemAsync('userUsername');
+      await SecureStore.deleteItemAsync('userEmail');
+      await SecureStore.deleteItemAsync('userLastName');
+      await SecureStore.deleteItemAsync('userFirstName');
+      await SecureStore.deleteItemAsync('userPhoneNumber');
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'OnBoardingScreen' }],
+      });
+    }
+    catch (error: any) {
+      Toast.show({
+          type: 'error',
+          text1: 'Error!',
+          text2: 'An error occurred while logging out.',
+      });
+      console.error("Logout error:", error);
+  }
   };
 
   const menuItems = [
@@ -100,8 +150,8 @@ export default function ProfileScreen() {
                   style={styles.profileImage}
               />
               <View style={styles.profileText}>
-                <Text style={styles.profileName}>John Doe</Text>
-                <Text style={styles.profilePhone}>(+1) 234 567 890</Text>
+                <Text style={styles.profileName}>{profile?.firstName + " " + profile?.lastName}</Text>
+                <Text style={styles.profilePhone}>{profile?.phone}</Text>
               </View>
             </View>
             <TouchableOpacity onPress={showLogoutModal}>
@@ -150,6 +200,7 @@ export default function ProfileScreen() {
               </Animated.View>
             </View>
         )}
+      <Toast/>
       </SafeAreaView>
   );
 }

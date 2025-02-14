@@ -47,10 +47,20 @@ export default function SuccessScreen() {
             if (!isSignedIn) {
                 await GoogleSignin.signIn();
             }
+            console.log("aaaaaaaaaaaaaaaaaaaaaaa");
             const { accessToken } = await GoogleSignin.getTokens();
+            console.log(accessToken);
             const userInfo = GoogleSignin.getCurrentUser();
+            //const serverAuthCode = userInfo?.serverAuthCode;
+            //const userId = await SecureStore.getItemAsync("userId");
+        
+            //@ts-ignore
+            //const request = httpRequest('/app/authentification/google', 'POST' , {user_id : userId, server_auth_code : serverAuthCode});
+            await SecureStore.setItemAsync('googleCalendarAccessToken', String(accessToken) ?? '');
             await fetchCalendars(accessToken);
+            console.log(calendars);
 
+            
             return accessToken;
         } catch (error: any) {
             if (error.code === statusCodes.SIGN_IN_CANCELLED) {
@@ -98,7 +108,7 @@ export default function SuccessScreen() {
             const filteredCalendars = data.items.filter((calendar: { accessRole: string }) => {
                 return calendar.accessRole === "owner";
             });
-
+            console.log(calendars);
             setCalendars(filteredCalendars);
         } catch (error) {
             throw new Error(`Error fetching calendars: ${error instanceof Error ? error.message : 'Unknown'}`);
