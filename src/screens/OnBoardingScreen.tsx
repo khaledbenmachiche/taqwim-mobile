@@ -129,7 +129,7 @@ const styles = StyleSheet.create({
         padding: 20,
     },
     skipText: {
-        color: '#0E8A5F',
+        color: '#20845A',
         fontSize: 16,
     },
     slidesContainer: {
@@ -175,10 +175,10 @@ const styles = StyleSheet.create({
         marginHorizontal: 4,
     },
     paginationDotActive: {
-        backgroundColor: '#0E8A5F',
+        backgroundColor: '#20845A',
     },
     signInButton: {
-        backgroundColor: '#0E8A5F',
+        backgroundColor: '#20845A',
         paddingVertical: 16,
         paddingHorizontal: 20,
         borderRadius: 12,
@@ -194,7 +194,7 @@ const styles = StyleSheet.create({
         paddingVertical: 16,
     },
     createAccountText: {
-        color: '#0E8A5F',
+        color: '#20845A',
         fontSize: 16,
         fontWeight: '600',
         textAlign: 'center',

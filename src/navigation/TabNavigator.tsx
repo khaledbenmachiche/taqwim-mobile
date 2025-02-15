@@ -76,11 +76,14 @@ const styles = StyleSheet.create({
     paddingBottom: Platform.OS === 'ios' ? 24 : 16,
     backgroundColor: 'transparent',
     alignItems: 'center',
+    zIndex:0,
+    elevation: 2,
   },
   tabBar: {
     flexDirection: 'row',
     backgroundColor: 'white',
-    borderRadius: 25,
+    borderRadius: 20,
+    borderColor: "#20845A26",
     padding: 4,
     ...Platform.select({
       ios: {
@@ -97,13 +100,13 @@ const styles = StyleSheet.create({
   tab: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
+    borderRadius: 13,
     marginHorizontal: 2,
   },
   activeTab: {
-    backgroundColor: '#1B7B5E',
+    backgroundColor: '#20845A',
   },
   tabText: {
     color: 'white',

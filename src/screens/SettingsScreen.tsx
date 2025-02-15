@@ -1,27 +1,37 @@
-import { useEffect, useState } from "react"
-import { SafeAreaView, View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Alert } from "react-native"
-import { Ionicons } from "@expo/vector-icons"
-import {useNavigation} from "@react-navigation/native";
-import {StackNavigationProp} from "@react-navigation/stack";
-import {RootStackParamList} from "../navigation/AppNavigator";
+import React, { useEffect, useState } from "react";
+import {
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+  Linking,
+  Alert,
+  Platform,
+} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { StackNavigationProp } from "@react-navigation/stack";
+import { RootStackParamList } from "../navigation/AppNavigator";
 import Toast from "react-native-toast-message";
 import * as SecureStore from 'expo-secure-store';
 import httpRequest from "../utils/httpRequest";
 
-type SettingsScreenNavigationProp = StackNavigationProp<
-    RootStackParamList
->;
+type SettingsScreenNavigationProp = StackNavigationProp<RootStackParamList>;
+
 interface AuthApp {
   name: string;
-  id: number
+  id: number;
 }
+
 export default function SettingsScreen() {
-  const [refreshTime, setRefreshTime] = useState(5);
-  const [selectedApps, setSelectedApps] = useState([]);
-  const [isEditing, setIsEditing] = useState(false);
+  const [selectedApps, setSelectedApps] = useState<string[]>([]);
   const apps = ["SMS", "WhatsApp", "Push", "Telegram"];
-  const navigation : SettingsScreenNavigationProp = useNavigation();
+
+  const navigation: SettingsScreenNavigationProp = useNavigation();
   const [id, setId] = useState<string | null>(null);
+
   useEffect(() => {
     const fetchApps = async () => {
       try {
@@ -30,141 +40,123 @@ export default function SettingsScreen() {
           throw new Error("User ID not found in SecureStore");
         }
         setId(userId);
-        const data = await httpRequest(`/app/user/${userId}`,"GET");
+        const data = await httpRequest(`/app/user/${userId}`, "GET");
         setSelectedApps(data.authorizations.map((item: AuthApp) => item.name));
-        
       } catch (error) {
         console.error("Error fetching user ID:", error);
       }
     };
-  
-    fetchApps(); 
-  }, []); 
-  /*const incrementTime = () => {
-    setRefreshTime((prev) => prev + 1)
-    setIsEditing(false)
-  }
 
-  const decrementTime = () => {
-    setRefreshTime((prev) => (prev > 1 ? prev - 1 : 1))
-    setIsEditing(false)
-  }*/
+    fetchApps();
+  }, []);
 
-  const toggleApp = (app: string) => {
-    setSelectedApps((prev) => (prev.includes(app) ? prev.filter((a) => a !== app) : [...prev, app]))
-  }
+  const enableTelegram = async () => {
+    try {
+      const botUsername = "ICSProjectBot";
+      const username = await SecureStore.getItemAsync("userUsername");
+
+      if (!username) {
+        throw new Error("Username not found");
+      }
+      const telegramLink = `https://t.me/${botUsername}?start=${encodeURIComponent(username)}`;
+      console.log("Generated Telegram Link:", telegramLink);
+      const supported = await Linking.canOpenURL(telegramLink);
+      if (supported) {
+        await Linking.openURL(telegramLink);
+      } else {
+        Alert.alert("Telegram is not installed.");
+      }
+    } catch (error: any) {
+      console.error("Error enabling Telegram:", error);
+      Alert.alert("Failed to link Telegram", error.message);
+    }
+  };
+
+  const toggleApp = async (app: string) => {
+    setSelectedApps((prev) =>
+        prev.includes(app) ? prev.filter((a) => a !== app) : [...prev, app]
+    );
+    if (app === 'Telegram') {
+      await enableTelegram();
+    }
+  };
 
   const handleSaveChanges = async () => {
     try {
-      await httpRequest(`/app/user/${id}`,"PUT", {"authorization_methods": selectedApps});
+      await httpRequest(`/app/user/${id}`, "PUT", { "authorization_methods": selectedApps });
 
       Toast.show({
-              type: "success",
-              text1: "Success!",
-              text2: "Your settings have been saved successfully!",
-      })
-      
+        type: "success",
+        text1: "Success!",
+        text2: "Your settings have been saved successfully!",
+      });
     } catch (error) {
       Toast.show({
         type: "error",
         text1: "Error",
         text2: "Failed to save changes. Please try again.",
-})
-    
+      });
     }
-  }
+  };
+
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="chevron-back" size={24} color="black" />
-        </TouchableOpacity>
-        <Text style={styles.title}>Settings</Text>
-      </View>
+      <SafeAreaView style={styles.container}>
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+            <Ionicons name="chevron-back" size={24} color="#000000" />
+          </TouchableOpacity>
+          <Text style={styles.title}>Settings</Text>
+          <View style={styles.backButton} />
+        </View>
 
-      {/* Banner */}
-      <View style={styles.banner}>
-        <Text style={styles.bannerText}>Control the settings of your app!</Text>
-      </View>
+        {/* Banner */}
+        <View style={styles.banner}>
+          <Text style={styles.bannerText}>Control the settings of your app!</Text>
+        </View>
 
-      <ScrollView style={styles.content}>
-        {/* Refresh Time Section 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Refresh time</Text>
-          <Text style={styles.sectionSubtitle}>Decide the frequency you want to load events with</Text>
+        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+          {/* Apps Authorization Section */}
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Apps Authorizations</Text>
+            <Text style={styles.sectionSubtitle}>
+              Choose the apps from which you want to receive notifications
+            </Text>
 
-          <View style={styles.timeControl}>
-            <TouchableOpacity style={styles.timeButton} onPress={decrementTime}>
-              <Text style={styles.timeButtonText}>-</Text>
-            </TouchableOpacity>
-
-            <View style={styles.timeDisplay}>
-              <Text style={styles.timeNumber}>Every</Text>
-              {isEditing ? (
-                <TextInput
-                  style={[styles.timeValue, styles.timeInput]}
-                  value={refreshTime.toString()}
-                  onChangeText={(text) => {
-                    if (text === "") {
-                      setRefreshTime(0)
-                    } else {
-                      const num = Number.parseInt(text)
-                      if (!isNaN(num)) {
-                        setRefreshTime(num)
-                      }
-                    }
-                  }}
-                  keyboardType="number-pad"
-                  onBlur={() => {
-                    if (refreshTime === 0) {
-                      setRefreshTime(1)
-                    }
-                    setIsEditing(false)
-                  }}
-                  autoFocus
-                />
-              ) : (
-                <TouchableOpacity onPress={() => setIsEditing(true)}>
-                  <Text style={styles.timeValue}>{refreshTime}</Text>
-                </TouchableOpacity>
-              )}
-              <Text style={styles.timeNumber}>Minutes</Text>
+            <View style={styles.appsList}>
+              {apps.map((app) => (
+                  <TouchableOpacity
+                      key={app}
+                      style={[
+                        styles.appItem,
+                        selectedApps.includes(app) && styles.appItemSelected,
+                      ]}
+                      onPress={() => toggleApp(app)}
+                  >
+                    <View style={[
+                      styles.checkbox,
+                      selectedApps.includes(app) && styles.checkboxSelected
+                    ]}>
+                      {selectedApps.includes(app) && (
+                          <Ionicons name="checkmark" size={16} color="white" />
+                      )}
+                    </View>
+                    <Text style={styles.appName}>{app}</Text>
+                  </TouchableOpacity>
+              ))}
             </View>
-
-            <TouchableOpacity style={styles.timeButton} onPress={incrementTime}>
-              <Text style={styles.timeButtonText}>+</Text>
-            </TouchableOpacity>
           </View>
-        </View>
-         */}
-        {/* Apps Authorization Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Apps Authorizations</Text>
-          <Text style={styles.sectionSubtitle}>Choose the apps from which you want to receive notifications</Text>
+        </ScrollView>
 
-          <View style={styles.appsList}>
-            {apps.map((app) => (
-              <TouchableOpacity key={app} style={styles.appItem} onPress={() => toggleApp(app)}>
-                <View style={[styles.checkbox, selectedApps.includes(app) && styles.checkboxSelected]}>
-                  {selectedApps.includes(app) && <Ionicons name="checkmark" size={16} color="white" />}
-                </View>
-                <Text style={styles.appName}>{app}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+        {/* Save Button */}
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.saveButton} onPress={handleSaveChanges}>
+            <Text style={styles.saveButtonText}>Save Changes</Text>
+          </TouchableOpacity>
         </View>
-      </ScrollView>
-
-      {/* Save Button */}
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.saveButton} onPress={handleSaveChanges}>
-          <Text style={styles.saveButtonText}>Save Changes</Text>
-        </TouchableOpacity>
-      </View>
-    <Toast/>
-    </SafeAreaView>
-  )
+        <Toast />
+      </SafeAreaView>
+  );
 }
 
 const styles = StyleSheet.create({
@@ -175,125 +167,107 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "space-between",
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingTop: Platform.OS === "ios" ? 8 : 16,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E9F0",
   },
   backButton: {
-    padding: 4,
+    width: 40,
+    height: 40,
+    justifyContent: "center",
+    alignItems: "center",
   },
   title: {
     fontSize: 24,
-    fontWeight: "bold",
-    flex: 1,
+    fontWeight: "600",
+    color: "#000000",
     textAlign: "center",
-    marginRight: 28,
   },
   banner: {
-    backgroundColor: "#E1EFE6",
-    padding: 20,
+    backgroundColor: "#E5F0EC",
+    padding: 16,
   },
   bannerText: {
-    fontSize: 22,
-    color: "#000000",
+    fontSize: 16,
+    lineHeight: 24,
+    color: "#1B7B5E",
+    fontWeight: "500",
   },
   content: {
     flex: 1,
   },
   section: {
-    padding: 20,
+    padding: 16,
   },
   sectionTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
+    fontSize: 20,
+    fontWeight: "600",
+    color: "#1A1A1A",
     marginBottom: 8,
   },
   sectionSubtitle: {
-    fontSize: 16,
+    fontSize: 14,
     color: "#666666",
-    marginBottom: 20,
-  },
-  timeControl: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: 10,
-  },
-  timeButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#E1EFE6",
-    backgroundColor: "#F5F5F5",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  timeButtonText: {
-    fontSize: 24,
-    color: "#1B7B5E",
-    fontWeight: "500",
-  },
-  timeDisplay: {
-    alignItems: "center",
-    marginHorizontal: 20,
-  },
-  timeNumber: {
-    fontSize: 16,
-    color: "#666666",
-  },
-  timeValue: {
-    fontSize: 32,
-    fontWeight: "bold",
-    color: "#1B7B5E",
-    marginVertical: 4,
-  },
-  timeInput: {
-    minWidth: 50,
-    textAlign: "center",
+    marginBottom: 16,
   },
   appsList: {
-    marginTop: 10,
+    marginTop: 8,
   },
   appItem: {
     flexDirection: "row",
     alignItems: "center",
     padding: 16,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: "white",
     borderRadius: 12,
     marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "#E5E9F0",
+  },
+  appItemSelected: {
+    backgroundColor: "#F0F9F6",
+    borderColor: "#20845A",
   },
   checkbox: {
     width: 24,
     height: 24,
     borderRadius: 6,
     borderWidth: 2,
-    borderColor: "#1B7B5E",
+    borderColor: "#20845A",
     marginRight: 12,
     alignItems: "center",
     justifyContent: "center",
   },
   checkboxSelected: {
-    backgroundColor: "#1B7B5E",
+    backgroundColor: "#20845A",
   },
   appName: {
     fontSize: 16,
     fontWeight: "500",
+    color: "#1A1A1A",
+    flex: 1,
+  },
+  appIcon: {
+    marginLeft: 8,
   },
   buttonContainer: {
     padding: 16,
-    paddingBottom: 32,
+    paddingBottom: Platform.OS === "ios" ? 34 : 24,
+    borderTopWidth: 1,
+    borderTopColor: "#E5E9F0",
   },
   saveButton: {
-    backgroundColor: "#1B7B5E",
-    borderRadius: 16,
-    padding: 18,
+    backgroundColor: "#20845A",
+    borderRadius: 12,
+    padding: 16,
     alignItems: "center",
-    width: "100%",
+    justifyContent: "center",
   },
   saveButtonText: {
     color: "white",
     fontSize: 16,
     fontWeight: "600",
   },
-})
-
+});
