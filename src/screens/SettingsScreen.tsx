@@ -1,22 +1,46 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { SafeAreaView, View, Text, TouchableOpacity, ScrollView, StyleSheet, TextInput, Alert } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import {useNavigation} from "@react-navigation/native";
 import {StackNavigationProp} from "@react-navigation/stack";
 import {RootStackParamList} from "../navigation/AppNavigator";
 import Toast from "react-native-toast-message";
+import * as SecureStore from 'expo-secure-store';
+import httpRequest from "../utils/httpRequest";
 
 type SettingsScreenNavigationProp = StackNavigationProp<
     RootStackParamList
 >;
-
+interface AuthApp {
+  name: string;
+  id: number
+}
 export default function SettingsScreen() {
   const [refreshTime, setRefreshTime] = useState(5);
-  const [selectedApps, setSelectedApps] = useState(["SMS", "WhatsApp", "Telegram"]);
+  const [selectedApps, setSelectedApps] = useState([]);
   const [isEditing, setIsEditing] = useState(false);
-  const apps = ["SMS", "WhatsApp", "Telegram", "Slack"]
+  const apps = ["SMS", "WhatsApp", "Push", "Telegram"];
   const navigation : SettingsScreenNavigationProp = useNavigation();
-  const incrementTime = () => {
+  const [id, setId] = useState<string | null>(null);
+  useEffect(() => {
+    const fetchApps = async () => {
+      try {
+        const userId = await SecureStore.getItemAsync("userId");
+        if (!userId) {
+          throw new Error("User ID not found in SecureStore");
+        }
+        setId(userId);
+        const data = await httpRequest(`/app/user/${userId}`,"GET");
+        setSelectedApps(data.authorizations.map((item: AuthApp) => item.name));
+        
+      } catch (error) {
+        console.error("Error fetching user ID:", error);
+      }
+    };
+  
+    fetchApps(); 
+  }, []); 
+  /*const incrementTime = () => {
     setRefreshTime((prev) => prev + 1)
     setIsEditing(false)
   }
@@ -24,16 +48,16 @@ export default function SettingsScreen() {
   const decrementTime = () => {
     setRefreshTime((prev) => (prev > 1 ? prev - 1 : 1))
     setIsEditing(false)
-  }
+  }*/
 
   const toggleApp = (app: string) => {
     setSelectedApps((prev) => (prev.includes(app) ? prev.filter((a) => a !== app) : [...prev, app]))
   }
+
   const handleSaveChanges = async () => {
     try {
+      await httpRequest(`/app/user/${id}`,"PUT", {"authorization_methods": selectedApps});
 
-      await new Promise((resolve) => setTimeout(resolve, 1000))
-      // const response = await api.updateSettings({ refreshTime, selectedApps });
       Toast.show({
               type: "success",
               text1: "Success!",

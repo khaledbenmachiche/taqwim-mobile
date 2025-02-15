@@ -47,7 +47,6 @@ export default function SuccessScreen() {
             if (!isSignedIn) {
                 await GoogleSignin.signIn();
             }
-            console.log("aaaaaaaaaaaaaaaaaaaaaaa");
             const { accessToken } = await GoogleSignin.getTokens();
             console.log(accessToken);
             const userInfo = GoogleSignin.getCurrentUser();
