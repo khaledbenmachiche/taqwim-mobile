@@ -89,7 +89,7 @@ export default function ProfileScreen() {
           await GoogleSignin.signOut();
       }
       hideLogoutModal();
-      //await SecureStore.deleteItemAsync("googleCalendarAccessToken");
+      await SecureStore.deleteItemAsync("googleCalendarAccessToken");
       await SecureStore.deleteItemAsync('userId');
       await SecureStore.deleteItemAsync('userUsername');
       await SecureStore.deleteItemAsync('userEmail');

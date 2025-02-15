@@ -9,6 +9,7 @@ import {
   StatusBar,
   ActivityIndicator,
   Platform,
+  Image,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
@@ -27,6 +28,7 @@ interface Calendar {
 
 type CalendarSubscriptionScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
+  //@ts-ignore
   'ProfileScreen'
 >;
 
@@ -36,61 +38,71 @@ export default function CalendarSubscriptionScreen() {
   const navigation = useNavigation<CalendarSubscriptionScreenNavigationProp>();
   const [calendars, setCalendars] = useState<Calendar[]>([]);
   const [isFetchingCalendars, setIsFetchingCalendars] = useState(false);
+  const [isSignedIn, setIsSignedIn] = useState(false);
 
   useEffect(() => {
-    const fetchCalendars = async (accessToken: string) => {
-      try {
-        setIsFetchingCalendars(true);
-        const response = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            'Content-Type': 'application/json',
-          },
-        });
-
-        if (!response.ok) {
-          const errorBody = await response.text();
-          throw new Error(`Failed to fetch calendars: ${response.status} - ${errorBody}`);
-        }
-
-        const data = await response.json();
-        const filteredCalendars = data.items.filter((calendar: Calendar) => {
-          return calendar.accessRole === 'owner';
-        });
-
-        setCalendars(filteredCalendars);
-      } catch (error) {
-        console.error(`Error fetching calendars: ${error instanceof Error ? error.message : 'Unknown'}`);
-      } finally {
-        setIsFetchingCalendars(false);
+    const checkSignInStatus = async () => {
+      const isSignedIn = GoogleSignin.hasPreviousSignIn();
+      setIsSignedIn(isSignedIn);
+      if (isSignedIn) {
+        fetchGoogleToken();
+        fetchSelectedCalendars();
       }
     };
 
-    const fetchGoogleToken = async () => {
-      try {
-        const { accessToken } = await GoogleSignin.getTokens();
-        await fetchCalendars(accessToken);
-      } catch (error) {
-        console.error('Failed to get access token:', error);
-      }
-    };
-
-    const fetchSelectedCalendars = async () => {
-      try {
-        const id = await SecureStore.getItemAsync('userId');
-        if (!id) {
-          throw new Error('Failed user is not signed in');
-        }
-        const data = await httpRequest(`/app/calendar/user/${id}`, "GET");
-        setSelectedCalendars(data.map(item => item.google_calendar_id));
-      } catch (e) {
-        console.error('Failed to fetch selected calendars', e);
-      }
-    };
-
-    fetchGoogleToken();
-    fetchSelectedCalendars();
+    checkSignInStatus();
   }, []);
+
+  const fetchCalendars = async (accessToken: string) => {
+    try {
+      setIsFetchingCalendars(true);
+      const response = await fetch('https://www.googleapis.com/calendar/v3/users/me/calendarList', {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`Failed to fetch calendars: ${response.status} - ${errorBody}`);
+      }
+
+      const data = await response.json();
+      const filteredCalendars = data.items.filter((calendar: Calendar) => {
+        return calendar.accessRole === 'owner';
+      });
+
+      setCalendars(filteredCalendars);
+    } catch (error) {
+      console.error(`Error fetching calendars: ${error instanceof Error ? error.message : 'Unknown'}`);
+    } finally {
+      setIsFetchingCalendars(false);
+    }
+  };
+
+  const fetchGoogleToken = async () => {
+    try {
+      const { accessToken } = await GoogleSignin.getTokens();
+      await fetchCalendars(accessToken);
+    } catch (error) {
+      console.error('Failed to get access token:', error);
+    }
+  };
+
+  const fetchSelectedCalendars = async () => {
+    try {
+      const id = await SecureStore.getItemAsync('userId');
+      if (!id) {
+        throw new Error('Failed user is not signed in');
+      }
+      const data = await httpRequest(`/app/calendar/user/${id}`, "GET");
+      //@ts-ignore
+      setSelectedCalendars(data.map(item => item.google_calendar_id));
+    } catch (e) {
+      console.error('Failed to fetch selected calendars', e);
+    }
+  };
 
   const handleGoBack = () => {
     navigation.goBack();
@@ -136,7 +148,17 @@ export default function CalendarSubscriptionScreen() {
       setIsSaving(false);
     }
   };
-  
+
+  const handleGoogleSignIn = async () => {
+    try {
+      await GoogleSignin.signIn();
+      const { accessToken } = await GoogleSignin.getTokens();
+      setIsSignedIn(true);
+      await fetchCalendars(accessToken);
+    } catch (error) {
+      console.error('Google Sign-In error:', error);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -150,57 +172,69 @@ export default function CalendarSubscriptionScreen() {
         <Text style={styles.title}>My Calendars</Text>
         <View style={styles.backButton} /> {/* Spacer for centering */}
       </View>
-
-      {/* Banner */}
-      <View style={styles.banner}>
-        <Text style={styles.bannerText}>
-          Select the calendars that you want to subscribe to.
-        </Text>
-      </View>
-
-      {/* Calendar List */}
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        {calendars.map((calendar) => (
-          <TouchableOpacity
-            key={calendar.id}
-            style={styles.calendarItem}
-            onPress={() => toggleCalendar(calendar.id)}
-            activeOpacity={0.7}
-          >
-            <View style={styles.calendarContent}>
-              <View
-                style={[styles.checkbox, selectedCalendars.includes(calendar.id) && styles.checkboxSelected]}
-              >
-                {selectedCalendars.includes(calendar.id) && (
-                  <Ionicons name="checkmark" size={18} color="white" />
-                )}
-              </View>
-              {/* Display the calendar summary */}
-              <Text style={styles.calendarText}>{calendar.summary}</Text>
-            </View>
+      
+      {!isSignedIn ? (
+        <View style={styles.notSignedInContainer}>
+          <Image source={{ uri: 'https://example.com/oops-image.png' }} style={styles.notSignedInImage} />
+          <Text style={styles.notSignedInText}>OOOPPSS no calendars</Text>
+          <TouchableOpacity style={styles.signInButton} onPress={handleGoogleSignIn}>
+            <Text style={styles.signInButtonText}>Sign in with Google</Text>
           </TouchableOpacity>
-        ))}
-      </ScrollView>
+        </View>
+      ) : (
+        <>
+          {/* Banner */}
+          <View style={styles.banner}>
+            <Text style={styles.bannerText}>
+              Select the calendars that you want to subscribe to.
+            </Text>
+          </View>
 
-      {/* Save Button */}
-      <View style={styles.buttonContainer}>
-        <TouchableOpacity
-          style={styles.saveButton}
-          onPress={handleSaveChanges}
-          disabled={isSaving}
-          activeOpacity={0.9}
-        >
-          {isSaving ? (
-            <ActivityIndicator color="white" />
-          ) : (
-            <Text style={styles.saveButtonText}>Save Changes</Text>
-          )}
-        </TouchableOpacity>
-      </View>
+          {/* Calendar List */}
+          <ScrollView
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
+            {calendars.map((calendar) => (
+              <TouchableOpacity
+                key={calendar.id}
+                style={styles.calendarItem}
+                onPress={() => toggleCalendar(calendar.id)}
+                activeOpacity={0.7}
+              >
+                <View style={styles.calendarContent}>
+                  <View
+                    style={[styles.checkbox, selectedCalendars.includes(calendar.id) && styles.checkboxSelected]}
+                  >
+                    {selectedCalendars.includes(calendar.id) && (
+                      <Ionicons name="checkmark" size={18} color="white" />
+                    )}
+                  </View>
+                  {/* Display the calendar summary */}
+                  <Text style={styles.calendarText}>{calendar.summary}</Text>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+
+          {/* Save Button */}
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.saveButton}
+              onPress={handleSaveChanges}
+              disabled={isSaving}
+              activeOpacity={0.9}
+            >
+              {isSaving ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <Text style={styles.saveButtonText}>Save Changes</Text>
+              )}
+            </TouchableOpacity>
+          </View>
+        </>
+      )}
       <Toast />
     </SafeAreaView>
   );
@@ -316,6 +350,37 @@ const styles = StyleSheet.create({
     elevation: 5,
   },
   saveButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  notSignedInContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 24,
+  },
+  notSignedInImage: {
+    width: 150,
+    height: 150,
+    marginBottom: 24,
+  },
+  notSignedInText: {
+    fontSize: 24,
+    fontWeight: "600",
+    color: "#000000",
+    marginBottom: 16,
+    textAlign: "center",
+  },
+  signInButton: {
+    backgroundColor: "#1B7B5E",
+    borderRadius: 12,
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  signInButtonText: {
     color: "white",
     fontSize: 16,
     fontWeight: "600",
