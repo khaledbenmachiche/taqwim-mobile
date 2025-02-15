@@ -83,13 +83,11 @@ export default function ProfileScreen() {
 
   const handleLogout = async () => {
     try {
-      
       const isSignedIn = GoogleSignin.hasPreviousSignIn();
       if (isSignedIn) {
           await GoogleSignin.revokeAccess();
           await GoogleSignin.signOut();
       }
-      
       hideLogoutModal();
       await SecureStore.deleteItemAsync("googleCalendarAccessToken");
       await SecureStore.deleteItemAsync('userId');

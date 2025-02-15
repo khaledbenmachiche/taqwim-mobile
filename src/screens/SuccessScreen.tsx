@@ -1,6 +1,6 @@
 import {useEffect, useState} from "react";
-import {StyleSheet, Text, View, TouchableOpacity, SafeAreaView, StatusBar, Modal, Image, Alert} from "react-native";
-import { Calendar, Check } from "lucide-react-native";
+import {Alert, Image, Modal, SafeAreaView, StatusBar, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Calendar, Check} from "lucide-react-native";
 import {useNavigation} from "@react-navigation/native";
 import {GoogleSignin, statusCodes} from "@react-native-google-signin/google-signin";
 import Constants from "expo-constants";
@@ -38,7 +38,6 @@ export default function SuccessScreen() {
         });
     },[]);
     const [isLoading, setIsLoading] = useState(false);
-    const [calendars, setCalendars] = useState<Calendar[]>([]);
     const [isFetchingCalendars, setIsFetchingCalendars] = useState(false);
 
     const handleGoogleSignIn = async () => {
@@ -50,16 +49,7 @@ export default function SuccessScreen() {
             const { accessToken } = await GoogleSignin.getTokens();
             console.log(accessToken);
             const userInfo = GoogleSignin.getCurrentUser();
-            //const serverAuthCode = userInfo?.serverAuthCode;
-            //const userId = await SecureStore.getItemAsync("userId");
-        
-            //@ts-ignore
-            //const request = httpRequest('/app/authentification/google', 'POST' , {user_id : userId, server_auth_code : serverAuthCode});
             await SecureStore.setItemAsync('googleCalendarAccessToken', String(accessToken) ?? '');
-            await fetchCalendars(accessToken);
-            console.log(calendars);
-
-            
             return accessToken;
         } catch (error: any) {
             if (error.code === statusCodes.SIGN_IN_CANCELLED) {
@@ -104,11 +94,9 @@ export default function SuccessScreen() {
             }
 
             const data = await response.json();
-            const filteredCalendars = data.items.filter((calendar: { accessRole: string }) => {
+            return data.items.filter((calendar: { accessRole: string }) => {
                 return calendar.accessRole === "owner";
             });
-            console.log(calendars);
-            setCalendars(filteredCalendars);
         } catch (error) {
             throw new Error(`Error fetching calendars: ${error instanceof Error ? error.message : 'Unknown'}`);
         } finally {
@@ -120,6 +108,7 @@ export default function SuccessScreen() {
         setIsLoading(true);
         try {
             const accessToken = await handleGoogleSignIn();
+            const calendars = await fetchCalendars(accessToken);
             if (calendars.length === 0) {
                 Alert.alert("You Don't have any calendars available in your google calendar");
                 Toast.show({
@@ -129,18 +118,22 @@ export default function SuccessScreen() {
                 });
                 return;
             }
+            console.log(calendars)
             for (const calendar of calendars) {
                 try {
-                    await shareCalendarWithServiceAccount(accessToken, calendar.id);
+                    const shared = await shareCalendarWithServiceAccount(accessToken, calendar.id);
                     const userId = await SecureStore.getItemAsync("userId");
+                    if (!userId){
+                        throw Error("User Isn't authetificated");
+                    }
                     const response = await httpRequest('/app/calendar/', 'POST', {
                         google_calendar_id: calendar.id,
-                        user_id: userId,
+                        user_id: +userId,
                         summary: calendar.summary,
                     });
 
                     console.log(`Calendar ${calendar.id} shared and saved successfully:`, response);
-                    //navigation.navigate("NotificationsScreen");
+
                     navigation.reset({
                         index: 0,
                         routes: [{ name: 'MainTabs' }],
