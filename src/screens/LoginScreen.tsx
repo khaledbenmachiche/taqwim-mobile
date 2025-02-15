@@ -15,7 +15,7 @@ import { ArrowLeft, EyeOff } from "lucide-react-native"
 
 type LoginScreenNavigationProp = StackNavigationProp<
   RootStackParamList,
-  'SignUp' | 'MainTabs'
+  'SignUp' | 'MainTabs' | 'ForgotPasswordScreen'
 >;
 
 export default function LoginScreen() {
@@ -131,7 +131,7 @@ export default function LoginScreen() {
                         </View>
                     </View>
 
-                    <TouchableOpacity>
+                    <TouchableOpacity onPress={()=> navigation.navigate('ForgotPasswordScreen')}>
                         <Text style={styles.forgotPassword}>Forgot Password?</Text>
                     </TouchableOpacity>
 
@@ -206,12 +206,12 @@ const styles = StyleSheet.create({
         padding: 16,
     },
     forgotPassword: {
-        color: "#2E8B57",
+        color: "#20845A",
         fontSize: 16,
         fontWeight: "500",
     },
     signInButton: {
-        backgroundColor: "#2E8B57",
+        backgroundColor: "#20845A",
         padding: 16,
         borderRadius: 100,
         alignItems: "center",
@@ -234,7 +234,7 @@ const styles = StyleSheet.create({
         fontSize: 16,
     },
     signUpText: {
-        color: "#2E8B57",
+        color: "#20845A",
         fontSize: 16,
         fontWeight: "500",
     },

@@ -322,7 +322,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   createAccountButton: {
-    backgroundColor: "#2E8B57",
+    backgroundColor: "#20845A",
     padding: 16,
     borderRadius: 100,
     alignItems: "center",
@@ -345,7 +345,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   signInText: {
-    color: "#2E8B57",
+    color: "#20845A",
     fontSize: 16,
     fontWeight: "500",
   },

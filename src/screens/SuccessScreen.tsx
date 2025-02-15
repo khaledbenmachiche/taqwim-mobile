@@ -242,7 +242,7 @@ const styles = StyleSheet.create({
     iconBackground: {
         width: 80,
         height: 80,
-        backgroundColor: "#2E8B57",
+        backgroundColor: "#20845A",
         borderRadius: 12,
         alignItems: "center",
         justifyContent: "center",
@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
         position: "absolute",
         right: -4,
         top: -4,
-        backgroundColor: "#2E8B57",
+        backgroundColor: "#20845A",
         borderRadius: 12,
         padding: 4,
     },
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 24,
     },
     getStartedButton: {
-        backgroundColor: "#2E8B57",
+        backgroundColor: "#20845A",
         paddingVertical: 16,
         paddingHorizontal: 32,
         borderRadius: 100,
@@ -287,7 +287,7 @@ const styles = StyleSheet.create({
         paddingVertical: 8,
     },
     linkButtonText: {
-        color: "#2E8B57",
+        color: "#20845A",
         fontSize: 16,
         fontWeight: "500",
         textDecorationLine: "underline",

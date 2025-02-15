@@ -162,7 +162,7 @@ export default function ProfileScreen() {
                 <TouchableOpacity key={index} style={styles.menuItem} onPress={item.onPress}>
                   <View style={styles.menuItemLeft}>
                     <View style={styles.iconContainer}>
-                      <Ionicons name={item.icon as any} size={24} color="#1B7B5E" />
+                      <Ionicons name={item.icon as any} size={24} color="#20845A" />
                     </View>
                     <Text style={styles.menuItemText}>{item.title}</Text>
                   </View>
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   menuItemText: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "500",
   },
   modalOverlay: {
@@ -290,7 +290,8 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     justifyContent: "flex-end",
-    zIndex: 1000,
+    zIndex: 999,
+    elevation: 5,
   },
   modalBackground: {
     position: "absolute",
@@ -306,6 +307,8 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     padding: 20,
     paddingBottom: 40,
+    zIndex: 1000,
+    elevation: 6,
   },
   logoutModalContent: {
     alignItems: "center",
@@ -336,7 +339,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#F3F4F6",
   },
   confirmButton: {
-    backgroundColor: "#1B7B5E",
+    backgroundColor: "#20845A",
   },
   cancelButtonText: {
     fontSize: 16,

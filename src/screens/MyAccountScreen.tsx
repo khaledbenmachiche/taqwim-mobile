@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useCallback } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Platform, Alert,ScrollView } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import * as ImagePicker from "expo-image-picker"
@@ -37,7 +37,7 @@ export default function MyAccountScreen() {
     username: "",
   });
   const isFocused = useIsFocused();
-  const [showPassword, setShowPassword] = useState(false)
+  const [showPassword, setShowPassword] = useState(false);
   const [profileImage, setProfileImage] = useState(
     "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/9.%20Profile-li6E6VcQw3LrU3IPtu5I1uvVksnjj3.png",
   )
@@ -54,7 +54,7 @@ export default function MyAccountScreen() {
     } catch (error) {
       console.error("Error fetching profile:", error)
     }
-  }, [])
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -87,8 +87,7 @@ export default function MyAccountScreen() {
       Alert.alert("Error picking image")
     }
   }
-  //TODO : fix update reload page
-  //TODO : TOAST
+
   const handleSaveChanges = async () => {
     try {
       const updatedData = {
@@ -114,9 +113,7 @@ export default function MyAccountScreen() {
         text1: "Success!",
         text2: "Account updated successfully.",
       })
-
-      // Refresh the profile data after saving changes
-      fetchProfile()
+      await fetchProfile()
     } catch (e) {
       console.error("Error updating account:", e)
       Toast.show({
@@ -127,14 +124,12 @@ export default function MyAccountScreen() {
     }
   };
 
-
-
   return (
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color="#000" />
+          <Ionicons name="chevron-back" size={24} color="#000000" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>My Account</Text>
         <View style={styles.backButton} /> {/* Placeholder for alignment */}
@@ -277,7 +272,7 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   changePictureText: {
-    color: "#1B7B5E",
+    color: "#20845A",
     fontSize: 16,
     fontWeight: "500",
   },
@@ -323,7 +318,7 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   saveButton: {
-    backgroundColor: "#1B7B5E",
+    backgroundColor: "#20845A",
     marginHorizontal: 16,
     padding: 16,
     borderRadius: 12,

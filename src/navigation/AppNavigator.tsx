@@ -12,6 +12,7 @@ import MyAccountScreen from '../screens/MyAccountScreen';
 import CalendarSubscriptionScreen from '../screens/CalendarSubscriptionScreen';
 import SettingsScreen from '../screens/SettingsScreen';
 import TabNavigator from './TabNavigator';
+import ForgotPasswordScreen from "../screens/ForgotPasswordScreen";
 
 const Stack = createStackNavigator();
 
@@ -24,6 +25,7 @@ export type RootStackParamList = {
   MyAccountScreen: undefined;
   CalendarSubscription: undefined;
   SettingsScreen: undefined;
+  ForgotPasswordScreen: undefined;
 };
 
 const AppNavigator = () => {
@@ -44,17 +46,11 @@ const AppNavigator = () => {
     const checkUserSession = async () => {
       try {
         const userId = await SecureStore.getItemAsync('userId');
-        let accessToken = await SecureStore.getItemAsync('googleCalendarAccessToken');
-
         if (!userId) {
           setInitialRoute('OnBoardingScreen');
           return;
         }
-        if (accessToken) {
-          setInitialRoute('MainTabs');
-        } else {
-          setInitialRoute('OnBoardingScreen');
-        }
+        setInitialRoute('MainTabs');
       } catch (error) {
         console.error('Error retrieving user session:', error);
         setInitialRoute('OnBoardingScreen');
@@ -83,6 +79,8 @@ const AppNavigator = () => {
         <Stack.Screen name="MyAccountScreen" component={MyAccountScreen} options={{ headerShown: false }} />
         <Stack.Screen name="CalendarSubscription" component={CalendarSubscriptionScreen} options={{ headerShown: false }} />
         <Stack.Screen name="SettingsScreen" component={SettingsScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="ForgotPasswordScreen" component={ForgotPasswordScreen} options={{ headerShown: false }} />
+
       </Stack.Navigator>
     </NavigationContainer>
   );
