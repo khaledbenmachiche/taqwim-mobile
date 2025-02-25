@@ -28,7 +28,7 @@ export default function SuccessScreen() {
 
     useEffect(()=> {
         GoogleSignin.configure({
-            webClientId: Constants.manifest.extra.googleWebClientId,
+            webClientId: Constants.expoConfig?.extra?.googleWebClientId,
             scopes: [
                 'https://www.googleapis.com/auth/calendar',
                 'https://www.googleapis.com/auth/calendar.events',

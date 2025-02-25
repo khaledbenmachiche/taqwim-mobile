@@ -21,7 +21,8 @@
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.anonymous.notifyme"
+      "package": "com.anonymous.notifyme",
+      "googleServicesFile": "./android/app/google-services.json"
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -35,7 +36,7 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "e64ea640-469a-4efc-9f02-b108d898f5da"
+        "projectId": "67cc68b5-c602-4881-9a67-8128d851440a"
       }
     }
   }

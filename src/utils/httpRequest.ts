@@ -1,6 +1,6 @@
 import Constants  from "expo-constants";
 
-const apiBaseUrl = Constants.manifest.extra.apiBaseUrl;
+const apiBaseUrl = Constants.expoConfig?.extra?.apiBaseUrl;
 const httpRequest = async (endpoint: string, method: string = "GET", body?: object) => {
   try {
     const options: RequestInit = {

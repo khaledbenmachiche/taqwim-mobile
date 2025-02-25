@@ -13,18 +13,18 @@ interface Calendar {
 }
 
 export default function CalendarSharingScreen() {
-  useEffect(()=>{
+  useEffect(() => {
     GoogleSignin.configure({
-          webClientId: Constants.manifest.extra.googleWebClientId,
-          scopes: [
-            'https://www.googleapis.com/auth/drive.readonly',
-            'https://www.googleapis.com/auth/calendar', 
-            'https://www.googleapis.com/auth/calendar.events',
-             ],
-          offlineAccess: true, 
-          forceCodeForRefreshToken: false,
+      webClientId: Constants.expoConfig?.extra?.googleWebClientId, // Use expoConfig
+      scopes: [
+        'https://www.googleapis.com/auth/drive.readonly',
+        'https://www.googleapis.com/auth/calendar',
+        'https://www.googleapis.com/auth/calendar.events',
+      ],
+      offlineAccess: true,
+      forceCodeForRefreshToken: false,
     });
-  },[]);
+  }, []);
   const [isLoading, setIsLoading] = useState(false);
   const [userEmail, setUserEmail] = useState<string | null>(null);
   const [calendars, setCalendars] = useState<Calendar[]>([]);
