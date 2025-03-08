@@ -3,6 +3,8 @@ import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import Constants from "expo-constants";
 import { Platform } from "react-native";
+import * as SecureStore from "expo-secure-store";
+import httpRequest from "../utils/httpRequest"
 
 export interface PushNotificationState {
     expoPushToken?: Notifications.ExpoPushToken;
@@ -59,10 +61,60 @@ export const usePushNotifications = (): PushNotificationState => {
 
         return token;
     }
+    async function sendTokenToBackend(token: string): Promise<boolean> {
+        try {
+            // Check if user is logged in by retrieving userId from secure storage
+            const userId = await SecureStore.getItemAsync("userId");
+
+            // If no userId is found, the user isn't logged in
+            if (!userId) {
+                console.log("User must be logged in to register push notifications");
+                return false;
+            }
+
+            // Get the previously stored token (if any)
+            const storedToken = await SecureStore.getItemAsync("pushToken");
+
+            // Only send to backend if the token is new or has changed
+            if (storedToken !== token) {
+                // Send the token to the backend
+                const response = await httpRequest("app/push-token", "POST", {
+                    userId,
+                    token
+                });
+
+                // If the request was successful, store the new token
+                if (response && response.success) {
+                    await SecureStore.setItemAsync("pushToken", token);
+                    console.log("Push token updated successfully");
+                    return true;
+                } else {
+                    console.error("Backend rejected push token update");
+                    return false;
+                }
+            } else {
+                console.log("Token is unchanged, no update needed");
+                return true;
+            }
+        } catch (error) {
+            console.error("Error updating push token:", error);
+            return false;
+        }
+    }
+
 
     useEffect(() => {
         registerForPushNotificationsAsync().then(token => {
             setExpoPushToken(token);
+            if (token?.data === undefined){
+                return;
+            }
+            sendTokenToBackend(token.data).then(success => {
+                if (!success) {
+                    console.log("Failed to register push token with backend");
+                }
+            });
+
             console.log("Push Token:", token?.data);
         });
 
