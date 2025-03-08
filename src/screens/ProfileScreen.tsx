@@ -54,7 +54,7 @@ export default function ProfileScreen() {
   }, []);
   useEffect(()=> {
     GoogleSignin.configure({
-        webClientId: Constants.manifest.extra.googleWebClientId,
+        webClientId: Constants.expoConfig?.extra?.googleWebClientId,
         scopes: [
             'https://www.googleapis.com/auth/calendar',
             'https://www.googleapis.com/auth/calendar.events',
@@ -307,8 +307,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     padding: 20,
     paddingBottom: 40,
-    zIndex: 1000,
-    elevation: 6,
   },
   logoutModalContent: {
     alignItems: "center",
