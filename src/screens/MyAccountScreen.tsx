@@ -1,7 +1,5 @@
-"use client"
-
 import React, { useState, useCallback } from "react"
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Platform, Alert, ScrollView } from "react-native"
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Image, Platform, Alert, ScrollView,LogBox } from "react-native"
 import { Ionicons } from "@expo/vector-icons"
 import * as ImagePicker from "expo-image-picker"
 import { useNavigation, useFocusEffect } from "@react-navigation/native"
@@ -24,6 +22,8 @@ interface formDataType {
   username: string,
 }
 
+LogBox.ignoreLogs(['Text strings must be rendered within a <Text> component']);
+
 export default function MyAccountScreen() {
   const navigation: MyAccountScreenNavigationProp = useNavigation()
   const [formData, setFormData] = useState<formDataType>({
@@ -37,7 +37,7 @@ export default function MyAccountScreen() {
   })
   const [showPassword, setShowPassword] = useState(false)
   const [profileImage, setProfileImage] = useState(
-      "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/9.%20Profile-li6E6VcQw3LrU3IPtu5I1uvVksnjj3.png"
+      "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
   )
   const fetchProfile = useCallback(async () => {
     try {

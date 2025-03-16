@@ -143,7 +143,7 @@ export default function ProfileScreen() {
             <View style={styles.profileInfo}>
               <Image
                   source={{
-                    uri: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/9.%20Profile-li6E6VcQw3LrU3IPtu5I1uvVksnjj3.png",
+                    uri: "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png",
                   }}
                   style={styles.profileImage}
               />
@@ -290,8 +290,8 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     justifyContent: "flex-end",
-    zIndex: 999,
-    elevation: 5,
+    zIndex: 9999, // Increase this value
+    elevation: 10, // Increase for Android
   },
   modalBackground: {
     position: "absolute",
@@ -307,6 +307,9 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     padding: 20,
     paddingBottom: 40,
+    zIndex: 1000,
+    position: "relative",
+
   },
   logoutModalContent: {
     alignItems: "center",

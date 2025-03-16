@@ -2,7 +2,7 @@ import Constants from "expo-constants";
 
 const shareCalendarWithServiceAccount = async (accessToken: string, calendarId: string) => {
     try {
-        const serviceEmailAccount = Constants.manifest.extra.serviceEmailAccount;
+        const serviceEmailAccount = Constants.expoConfig?.extra?.serviceEmailAccount;
         const response = await fetch(
             `https://www.googleapis.com/calendar/v3/calendars/${encodeURIComponent(calendarId)}/acl`,
             {

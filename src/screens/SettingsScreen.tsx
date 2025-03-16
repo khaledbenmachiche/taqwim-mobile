@@ -73,12 +73,12 @@ export default function SettingsScreen() {
   };
 
   const toggleApp = async (app: string) => {
+    if (!selectedApps.includes(app) && app === 'Telegram') {
+      await enableTelegram();
+    }
     setSelectedApps((prev) =>
         prev.includes(app) ? prev.filter((a) => a !== app) : [...prev, app]
     );
-    if (app === 'Telegram') {
-      await enableTelegram();
-    }
   };
 
   const handleSaveChanges = async () => {

@@ -11,6 +11,17 @@ interface NotificationCardProps {
   title: string;
   message: string;
 }
+function formatDate(dateString:string){
+  const date = new Date(dateString);
+
+  return new Intl.DateTimeFormat('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: '2-digit',
+    weekday: 'long'
+  }).format(date);
+}
+
 
 const NotificationCard: React.FC<NotificationCardProps> = ({ time, title, message }) => (
     <View style={styles.card}>
@@ -18,7 +29,7 @@ const NotificationCard: React.FC<NotificationCardProps> = ({ time, title, messag
         <View style={styles.leftContent}>
           <View style={styles.greenDot} />
           <View>
-            <Text style={styles.timeText}>{time}</Text>
+            <Text style={styles.timeText}>{formatDate(time)}</Text>
             <Text style={styles.titleText}>{title}</Text>
             <Text style={styles.descriptionText}>{message}</Text>
           </View>

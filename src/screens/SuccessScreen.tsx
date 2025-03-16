@@ -21,22 +21,19 @@ type SuccessScreenNavigationProp = StackNavigationProp<
     'MainTabs'
 >;
 
+GoogleSignin.configure({
+    webClientId: Constants.expoConfig?.extra?.googleWebClientId,
+    scopes: [
+        'https://www.googleapis.com/auth/calendar',
+        'https://www.googleapis.com/auth/calendar.events',
+    ],
+    offlineAccess: true,
+    forceCodeForRefreshToken: false,
+});
 
 export default function SuccessScreen() {
     const [showModal, setShowModal] = useState(false)
     const navigation:SuccessScreenNavigationProp =  useNavigation();
-
-    useEffect(()=> {
-        GoogleSignin.configure({
-            webClientId: Constants.expoConfig?.extra?.googleWebClientId,
-            scopes: [
-                'https://www.googleapis.com/auth/calendar',
-                'https://www.googleapis.com/auth/calendar.events',
-            ],
-            offlineAccess: true,
-            forceCodeForRefreshToken: false,
-        });
-    },[]);
     const [isLoading, setIsLoading] = useState(false);
     const [isFetchingCalendars, setIsFetchingCalendars] = useState(false);
 

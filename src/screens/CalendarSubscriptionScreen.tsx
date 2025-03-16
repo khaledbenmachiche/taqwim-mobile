@@ -21,8 +21,8 @@ import { GoogleSignin } from "@react-native-google-signin/google-signin";
 import * as SecureStore from 'expo-secure-store';
 import httpRequest from "../utils/httpRequest";
 import Toast from "react-native-toast-message";
+import Constants from "expo-constants";
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 interface Calendar {
   id: string;
@@ -32,9 +32,18 @@ interface Calendar {
 
 // @ts-ignore
 type CalendarSubscriptionScreenNavigationProp = StackNavigationProp<
-    RootStackParamList,
-    'ProfileScreen'
+    RootStackParamList
 >;
+
+GoogleSignin.configure({
+  webClientId: Constants.expoConfig?.extra?.googleWebClientId,
+  scopes: [
+    'https://www.googleapis.com/auth/calendar',
+    'https://www.googleapis.com/auth/calendar.events',
+  ],
+  offlineAccess: true,
+  forceCodeForRefreshToken: false,
+});
 
 export default function CalendarSubscriptionScreen() {
   const [selectedCalendars, setSelectedCalendars] = useState<string[]>([]);
@@ -47,7 +56,7 @@ export default function CalendarSubscriptionScreen() {
 
   useEffect(() => {
     const checkSignInStatus = async () => {
-      const isSignedIn = await GoogleSignin.hasPreviousSignIn();
+      const isSignedIn = GoogleSignin.hasPreviousSignIn();
       setIsSignedIn(isSignedIn);
       if (isSignedIn) {
         await fetchGoogleToken();
@@ -157,7 +166,11 @@ export default function CalendarSubscriptionScreen() {
 
   const handleGoogleSignIn = async () => {
     try {
-      await GoogleSignin.signIn();
+      const response = await GoogleSignin.signIn();
+      console.log("Sign-in response:", response);
+      if (response.type === "cancelled"){
+        throw new Error("The Google Sign in failed");
+      }
       const { accessToken } = await GoogleSignin.getTokens();
       setIsSignedIn(true);
       await fetchCalendars(accessToken);
@@ -391,7 +404,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    minHeight: 300,
+    minHeight: 240,
   },
   modalContent: {
     padding: 24,
@@ -402,7 +415,7 @@ const styles = StyleSheet.create({
     height: 4,
     backgroundColor: '#E2E8F0',
     borderRadius: 2,
-    marginBottom: 24,
+    marginBottom: 10,
   },
   modalTitle: {
     fontSize: 20,

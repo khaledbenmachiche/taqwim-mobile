@@ -7,24 +7,22 @@ import Constants from "expo-constants";
 import { useEffect, useState } from 'react';
 import { NotificationOverlay } from './src/componants/NotificationOverlay';
 
+GoogleSignin.configure({
+    webClientId: Constants.expoConfig?.extra?.googleWebClientId,
+    scopes: [
+        'https://www.googleapis.com/auth/calendar',
+        'https://www.googleapis.com/auth/calendar.events',
+    ],
+    offlineAccess: true,
+    forceCodeForRefreshToken: false,
+});
+
 export default function App() {
     const { expoPushToken, notification } = usePushNotifications();
     const [visibleNotification, setVisibleNotification] = useState<{
         title?: string;
         body?: string;
     } | null>(null);
-
-    useEffect(() => {
-        GoogleSignin.configure({
-            webClientId: Constants.expoConfig?.extra?.googleWebClientId,
-            scopes: [
-                'https://www.googleapis.com/auth/calendar',
-                'https://www.googleapis.com/auth/calendar.events',
-            ],
-            offlineAccess: true,
-            forceCodeForRefreshToken: false,
-        });
-    }, []);
 
     useEffect(() => {
         if (notification) {
@@ -64,5 +62,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: "#fff",
+        paddingTop: Constants.statusBarHeight,
     },
 });

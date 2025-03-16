@@ -76,8 +76,8 @@ const styles = StyleSheet.create({
     paddingBottom: Platform.OS === 'ios' ? 24 : 16,
     backgroundColor: 'transparent',
     alignItems: 'center',
-    zIndex:0,
-    elevation: 2,
+    zIndex: 0, // Keep this low
+    elevation: 2, // Keep this low as well
   },
   tabBar: {
     flexDirection: 'row',

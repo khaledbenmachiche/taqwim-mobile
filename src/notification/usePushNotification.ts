@@ -31,21 +31,26 @@ export const usePushNotifications = (): PushNotificationState => {
         if (Device.isDevice) {
             const { status: existingStatus } = await Notifications.getPermissionsAsync();
             let finalStatus = existingStatus;
-
+            console.log("1")
             if (existingStatus !== "granted") {
                 const { status } = await Notifications.requestPermissionsAsync();
                 finalStatus = status;
+                console.log("2")
+
             }
+            console.log("3")
+
 
             if (finalStatus !== "granted") {
                 alert("Failed to get push token for push notification");
                 return;
             }
-
             token = await Notifications.getExpoPushTokenAsync({
                 projectId: Constants.expoConfig?.extra?.eas.projectId,
             });
+            console.log("Token from Expo API:", token);
         } else {
+            console.log("4")
             alert("Must use physical device for Push Notifications");
         }
 
@@ -63,27 +68,17 @@ export const usePushNotifications = (): PushNotificationState => {
     }
     async function sendTokenToBackend(token: string): Promise<boolean> {
         try {
-            // Check if user is logged in by retrieving userId from secure storage
             const userId = await SecureStore.getItemAsync("userId");
-
-            // If no userId is found, the user isn't logged in
             if (!userId) {
                 console.log("User must be logged in to register push notifications");
                 return false;
             }
-
-            // Get the previously stored token (if any)
             const storedToken = await SecureStore.getItemAsync("pushToken");
-
-            // Only send to backend if the token is new or has changed
             if (storedToken !== token) {
-                // Send the token to the backend
                 const response = await httpRequest("app/push-token", "POST", {
                     userId,
                     token
                 });
-
-                // If the request was successful, store the new token
                 if (response && response.success) {
                     await SecureStore.setItemAsync("pushToken", token);
                     console.log("Push token updated successfully");
@@ -105,8 +100,10 @@ export const usePushNotifications = (): PushNotificationState => {
 
     useEffect(() => {
         registerForPushNotificationsAsync().then(token => {
+            console.log(token.data)
             setExpoPushToken(token);
             if (token?.data === undefined){
+                console.log("no token was found")
                 return;
             }
             sendTokenToBackend(token.data).then(success => {

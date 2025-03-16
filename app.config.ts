@@ -6,8 +6,8 @@ export default {
     name: 'Notify Me',
     slug: 'notify-me',
     extra: {
-      "eas": {
-        "projectId": "67cc68b5-c602-4881-9a67-8128d851440a"
+      eas: {
+        projectId: "3b595170-cb5a-41b6-a144-817dc81c44ee"
       },
       googleWebClientId: process.env.CLIENT_ID_WEB,
       apiBaseUrl: process.env.API_BASE_URL,
