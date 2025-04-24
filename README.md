@@ -108,4 +108,3 @@ This project is licensed under the MIT License.
 
 For support or inquiries, visit [Taqwim DZ](https://taqwim-dz.vercel.app) or contact the development team at support@taqwim-dz.com.
 
-```
