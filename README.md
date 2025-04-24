@@ -1,4 +1,3 @@
-```markdown
 # Taqwim DZ
 
 Taqwim DZ is a mobile application designed to provide a robust event reminder system for users in Algeria and beyond. Built with React Native, it supports both Android and iOS platforms and integrates an intelligent SMS gateway for multi-channel notifications (SMS, Telegram, WhatsApp). The app leverages edge computing and IoT-based delivery to ensure reliable reminders, even offline, addressing limitations of traditional reminder systems.
