@@ -58,8 +58,8 @@ For more details, visit the [Taqwim DZ website](https://taqwim-dz.vercel.app).
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/your-repo/taqwim-dz.git
-   cd taqwim-dz
+   git clone https://github.com/khaledbenmachiche/taqwim-mobile.git
+   cd taqwim-mobile
    ```
 
 2. **Install dependencies**:
